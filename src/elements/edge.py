@@ -35,6 +35,7 @@ class HypergraphRelation(HypergraphMetaElement):
         self.__target = target
         self.__dir = direction
 
+
     @property
     def value(self):
         return self.__value
@@ -89,6 +90,11 @@ class HyperEdge(HypergraphElement):
     def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
                  parent: typing.Optional[HyperVertex]) -> None:
         super().__init__(name, timestamp, serial, guid, suid, label, parent)
+        # Parent
+        if parent is not None:
+            parent: HyperVertex
+            parent.add_element(self)
+        # Relations
         self.__relations: typing.Dict[bytes, HypergraphRelation] = {}
         # Vertex associations
         self.__associations: typing[bytes, HypergraphRelation] = {}
@@ -119,8 +125,6 @@ class HyperEdge(HypergraphElement):
             case EnumRelationDirection.UNDEFINED:
                 self.__cnt_out_relations += 1
                 self.__cnt_in_relations += 1
-
-
 
     def unassociate_vertex(self, v: HyperVertex):
         # TODO: unnassociation
@@ -197,10 +201,3 @@ class ExecutableHyperEdge(HyperEdge):
         raise NotImplementedError
 
 
-class ExecutableHyperVertex(HyperVertex):
-
-    def __call__(self, *args, **kwargs):
-        return self.operate(*args, **kwargs)
-
-    def operate(self, *args, **kwargs):
-        raise NotImplementedError

@@ -116,11 +116,17 @@ class HyperVertex(HypergraphElement):
                 if condition(__e):
                     __res.append(__e)
                     yield __e
-                for _, ch in __e._elements.items():
-                    fringe.appendleft(ch)
+                if isinstance(__e, HyperVertex):
+                    for _, ch in __e._elements.items():
+                        fringe.appendleft(ch)
         return __res
 
 
+class ExecutableHyperVertex(HyperVertex):
 
+    def __call__(self, *args, **kwargs):
+        return self.operate(*args, **kwargs)
 
+    def operate(self, *args, **kwargs):
+        raise NotImplementedError
 
