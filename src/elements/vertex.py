@@ -104,22 +104,29 @@ class HyperVertex(HypergraphElement):
     def __hash__(self):
         return int.from_bytes(self.guid, "big")
 
-    def get_subelements(self, condition: typing.Callable[[HypergraphElement], bool]):
+    def get_subelements(self, condition: typing.Callable[[HypergraphElement], bool], depth: typing.Optional[int] = None):
         visited = set()
         fringe = deque()
-        fringe.append(self)
+        fringe.append((self, 0))
         __res = []
+        if depth is None:
+            bound_condition = lambda x: True
+        else:
+            bound_condition = lambda x: d <= depth
         while len(fringe) != 0:
-            __e = fringe.pop()
-            if __e not in visited:
+            __e, d = fringe.pop()
+            if __e not in visited and bound_condition(d):
                 visited.add(__e)
                 if condition(__e):
                     __res.append(__e)
                     yield __e
                 if isinstance(__e, HyperVertex):
                     for _, ch in __e._elements.items():
-                        fringe.appendleft(ch)
+                        fringe.appendleft((ch, d + 1))
         return __res
+
+    def get_children(self, condition: typing.Callable[[HypergraphElement], bool]):
+        return self.get_subelements(condition, 1)
 
 
 class ExecutableHyperVertex(HyperVertex):
