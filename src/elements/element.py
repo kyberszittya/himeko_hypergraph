@@ -62,10 +62,24 @@ class HypergraphElement(HypergraphMetaElement):
         """
         super().__init__(timestamp, serial, guid, suid, label, parent)
         self.__name = name
+        # Attributes
+        self.__named_attr: typing.Dict[str, typing.Any] = {}
 
 
     @property
     def name(self):
         return self.__name
+
+    def __setitem__(self, key: str, value):
+        if isinstance(key, str):
+            self.__named_attr[key] = value
+
+    def __getitem__(self, item):
+        if isinstance(item, str):
+            if item in self.__named_attr:
+                return self.__named_attr[item]
+            else:
+                raise KeyError
+        return None
 
 

@@ -24,8 +24,7 @@ class HyperVertex(HypergraphElement):
         if parent is not None:
             parent.add_element(self)
         self._elements: typing.Dict[bytes, HypergraphElement] = {}
-        # Attributes
-        self.__named_attr: typing.Dict[str, typing.Any] = {}
+
         # Indexing
         self.__index_named_elements: typing.Dict[str, HypergraphElement] = {}
 
@@ -88,18 +87,6 @@ class HyperVertex(HypergraphElement):
 
     def __len__(self):
         return len(self._elements.values())
-
-    def __setitem__(self, key: str, value):
-        if isinstance(key, str):
-            self.__named_attr[key] = value
-
-    def __getitem__(self, item):
-        if isinstance(item, str):
-            if item in self.__named_attr:
-                return self.__named_attr[item]
-            else:
-                raise KeyError
-        return None
 
     def __hash__(self):
         return int.from_bytes(self.guid, "big")
