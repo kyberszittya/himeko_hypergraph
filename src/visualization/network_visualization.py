@@ -3,12 +3,13 @@ from matplotlib import pyplot as plt
 
 from himeko_hypergraph.src.elements.edge import HyperEdge
 from himeko_hypergraph.src.elements.vertex import HyperVertex
+from himeko_hypergraph.src.progeny.robotics.elements import RobotNode
 
 
-def visualize_node(node: HyperVertex, viz_parent=False):
+def visualize_node(node: RobotNode, viz_parent=False):
     G_viz = nx.DiGraph()
     color_map = []
-    for el in node.get_children(lambda x: True):
+    for el in node.robot_elements:
         if isinstance(el, HyperVertex):
             G_viz.add_node(el["name"], color="purple")
             color_map.append("purple")

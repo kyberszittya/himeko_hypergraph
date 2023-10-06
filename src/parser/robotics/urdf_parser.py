@@ -1,5 +1,6 @@
 import os
 import time
+import typing
 
 import lxml
 from lxml import objectify
@@ -8,6 +9,7 @@ from himeko_hypergraph.src.elements.vertex import HyperVertex
 from himeko_hypergraph.src.factories.creation_elements import FactoryHypergraphElements
 from himeko_hypergraph.src.mapping.bijective_mapping import bijective_mapping
 from himeko_hypergraph.src.progeny.geometry.geometry import VisualGeometry, CollisionGeometry, Mesh
+from himeko_hypergraph.src.progeny.robotics.elements import RobotNode
 from himeko_hypergraph.src.progeny.robotics.kinematics import KinematicLink, KinematicJoint
 
 
@@ -52,11 +54,13 @@ class ParserUrdf(object):
             _j = bijective_mapping(KinematicJoint, f"{joint.attrib['name']}", t0, parent_node, child_node, robot_node)
             _j["name"] = joint.attrib["name"]
 
-    def convert(self, p: os.PathLike | str) -> HyperVertex:
+    def convert(self, p: os.PathLike | str, parent: typing.Optional[HyperVertex] = None) -> RobotNode:
         robot = objectify.parse(open(p)).getroot()
         robot_name = robot.attrib["name"]
         t0 = time.time_ns()
-        robot_node = FactoryHypergraphElements.create_vertex_default(robot_name, t0)
+        robot_node = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
+            RobotNode, robot_name, t0, parent
+        )
         robot_node["name"] = robot_name
         self.get_links(robot_node, robot, t0)
         self.get_joints(robot_node, robot, t0)
