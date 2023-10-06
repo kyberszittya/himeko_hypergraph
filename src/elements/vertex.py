@@ -91,10 +91,23 @@ class HyperVertex(HypergraphElement):
     def __hash__(self):
         return int.from_bytes(self.guid, "big")
 
-    def get_subelements(self, condition: typing.Callable[[HypergraphElement], bool], depth: typing.Optional[int] = None):
+    def __fringe_append(self, fringe, __e, d):
+        for _, ch in __e._elements.items():
+            fringe.appendleft((ch, d + 1))
+
+    def __init_fringe(self, include_self: bool):
         visited = set()
         fringe = deque()
-        fringe.append((self, 0))
+        if include_self:
+            fringe.append((self, 0))
+        else:
+            self.__fringe_append(fringe, self, 0)
+        return visited, fringe
+
+    def get_subelements(self,
+                        condition: typing.Callable[[HypergraphElement], bool],
+                        depth: typing.Optional[int] = None, include_self=False):
+        visited, fringe = self.__init_fringe(include_self)
         __res = []
         if depth is None:
             bound_condition = lambda x: True
@@ -108,8 +121,7 @@ class HyperVertex(HypergraphElement):
                     __res.append(__e)
                     yield __e
                 if isinstance(__e, HyperVertex):
-                    for _, ch in __e._elements.items():
-                        fringe.appendleft((ch, d + 1))
+                    self.__fringe_append(fringe, __e, d)
         return __res
 
     def get_children(self, condition: typing.Callable[[HypergraphElement], bool]):

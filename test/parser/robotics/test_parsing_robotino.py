@@ -46,7 +46,13 @@ def test_robotino_parsing_get_children():
     assert len(unique_files) == 0
 
 
-def test_robotino_parsing_get_children():
+def test_robotino_parsing_visualize():
     p = ParserUrdf()
     robot = p.convert("../../../resources/commercial/robotino.urdf")
+    visualize_node(robot)
+
+
+def test_robotino_parsing_visualize_abb():
+    p = ParserUrdf()
+    robot = p.convert("../../../resources/robots/manipulators/irb2400.urdf")
     visualize_node(robot)
