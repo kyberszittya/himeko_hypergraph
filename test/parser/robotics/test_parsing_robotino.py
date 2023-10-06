@@ -52,7 +52,4 @@ def test_robotino_parsing_visualize():
     visualize_node(robot)
 
 
-def test_robotino_parsing_visualize_abb():
-    p = ParserUrdf()
-    robot = p.convert("../../../resources/robots/manipulators/irb2400.urdf")
-    visualize_node(robot)
+

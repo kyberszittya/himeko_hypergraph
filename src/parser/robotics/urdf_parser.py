@@ -50,14 +50,9 @@ class ParserUrdf(object):
             child_name = joint.child.attrib["link"]
             child_node = next(robot_node.get_children(lambda x, p_name=child_name: x['name'] == p_name))
             _j = bijective_mapping(KinematicJoint, f"{joint.attrib['name']}", t0, parent_node, child_node, robot_node)
-            """
-            _j = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
-                KinematicJoint, f"{joint.attrib['name']}", t0, robot_node
-            )
-            """
             _j["name"] = joint.attrib["name"]
 
-    def convert(self, p: os.PathLike) -> HyperVertex:
+    def convert(self, p: os.PathLike | str) -> HyperVertex:
         robot = objectify.parse(open(p)).getroot()
         robot_name = robot.attrib["name"]
         t0 = time.time_ns()
