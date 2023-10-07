@@ -8,7 +8,8 @@ from lxml import objectify
 from himeko_hypergraph.src.elements.vertex import HyperVertex
 from himeko_hypergraph.src.factories.creation_elements import FactoryHypergraphElements
 from himeko_hypergraph.src.mapping.bijective_mapping import bijective_mapping
-from himeko_hypergraph.src.progeny.geometry.geometry import VisualGeometry, CollisionGeometry, Mesh
+from himeko_hypergraph.src.progeny.geometry.geometry import VisualGeometry, CollisionGeometry, MeshVertex, \
+    BoxPrimitiveVertex, SpherePrimitiveVertex
 from himeko_hypergraph.src.progeny.robotics.elements import RobotNode
 from himeko_hypergraph.src.progeny.robotics.kinematics import KinematicLink, KinematicJoint
 
@@ -24,10 +25,20 @@ class ParserUrdf(object):
             match _el.tag:
                 case 'mesh':
                     _geom = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
-                        Mesh, "geom", t0, node)
+                        MeshVertex, "geom", t0, node)
                     _geom["filename"] = _el.attrib["filename"]
                 case 'box':
-                    print('box')
+                    _geom = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
+                        BoxPrimitiveVertex, "geom", t0, node)
+                    _geom["size"] = [float(x) for x in _el.attrib["size"].spit()]
+                case 'sphere':
+                    _geom = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
+                        SpherePrimitiveVertex, "geom", t0, node)
+                    _geom["radius"] = float(_el.attrib["radius"])
+                case 'cylinder':
+                    _geom = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
+                        SpherePrimitiveVertex, "geom", t0, node)
+                    _geom["radius"] = [float(_el.attrib["radius"]), float(_el.attrib["length"])]
 
     def get_links(self, robot_node: HyperVertex, robot_item, t0: int):
         for link in robot_item.iterchildren(tag='link'):
