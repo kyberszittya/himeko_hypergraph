@@ -75,7 +75,7 @@ class FactoryHypergraphElements(object):
 
     @classmethod
     def create_default_attributes(cls, name: str, timestamp: int, parent: typing.Optional[HyperVertex] = None):
-        label, serial, guid, suid = create_default_edge_id_values(name, timestamp, parent)
+        label, serial, guid, suid = create_default_vertex_id_values(name, timestamp, parent)
         if parent is not None:
             n = len(suid)
             suid = int.from_bytes(suid, 'big') & int.from_bytes(parent.guid, 'big')

@@ -5,6 +5,7 @@ from himeko_hypergraph.src.exceptions.basic_exceptions import InvalidHypergraphE
 
 from collections import deque
 
+
 class HyperVertex(HypergraphElement):
 
     def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
@@ -30,7 +31,7 @@ class HyperVertex(HypergraphElement):
 
     @property
     def attribute_names(self):
-        return [c for c in self.__named_attr.keys()]
+        return [c for c in self._named_attr.keys()]
 
     def add_element(self, v: HypergraphElement):
         # Ensure that the element is not itself

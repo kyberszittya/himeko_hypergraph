@@ -51,7 +51,7 @@ class FlowRequestVertex(MessageQueueVertex):
         raise NotImplementedError
 
     def _push_operation(self, *args, **kwargs):
-        match(self.__flow_direction):
+        match self.__flow_direction:
             case EnumRelationDirection.UNDEFINED:
                 return self._bidirectional_operation(*args, **kwargs)
             case EnumRelationDirection.IN:
@@ -84,8 +84,8 @@ class SequentialExecutionEdge(ExecutableHyperEdge):
         outputs = []
         for v in filter(lambda x: isinstance(x, MessageQueueVertex), self.in_vertices()):
             outputs.append(v())
-        for o in self.__operation_sequence:
-            outputs = o(outputs)
+        for op in self.__operation_sequence:
+            outputs = op(outputs)
         for v in filter(lambda x: isinstance(x, MessageQueueVertex), self.out_vertices()):
             v: MessageQueueVertex
             for o in outputs:
