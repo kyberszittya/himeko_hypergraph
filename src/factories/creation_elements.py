@@ -119,6 +119,8 @@ class FactoryHypergraphElements(object):
         return e0
 
 
+
+
 def create_vertex_by_labels(names: typing.Iterable[str], timestamp: int, parent: typing.Optional[HyperVertex] = None):
     vertices = []
     for c in names:

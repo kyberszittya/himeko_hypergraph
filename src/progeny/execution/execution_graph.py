@@ -88,5 +88,6 @@ class SequentialExecutionEdge(ExecutableHyperEdge):
             outputs = op(outputs)
         for v in filter(lambda x: isinstance(x, MessageQueueVertex), self.out_vertices()):
             v: MessageQueueVertex
-            for o in outputs:
-                v.push(o)
+            if outputs is not None:
+                for o in outputs:
+                    v.push(o)
