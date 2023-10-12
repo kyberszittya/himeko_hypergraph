@@ -12,7 +12,11 @@ class MessageQueueVertex(ExecutableHyperVertex):
                  parent: typing.Optional = None, transform_func: typing.Optional[typing.Callable] = None):
         super().__init__(name, timestamp, serial, guid, suid, label, parent)
         self._message_queue = deque()
-        self._transform_func = transform_func
+        self._cnt_msg = 0
+        if transform_func is None:
+            self._transform_func = lambda x: x
+        else:
+            self._transform_func = transform_func
 
     @abc.abstractmethod
     def _push_operation(self, *args, **kwargs):
@@ -20,16 +24,22 @@ class MessageQueueVertex(ExecutableHyperVertex):
 
     def push(self, *args, **kwargs):
         _msg = self._push_operation(*args, **kwargs)
+        self._cnt_msg += 1
         self._message_queue.append(_msg)
 
     def operate(self):
-        _msg = self._message_queue.popleft()
-        if self._transform_func is None:
-            return _msg
-        return self._transform_func(_msg)
+        if self._cnt_msg > 0:
+            _msg = self._message_queue.popleft()
+            self._cnt_msg -= 1
+            return self._transform_func(_msg)
+        return None
+
+    @property
+    def cnt_msg(self):
+        return self._cnt_msg
 
 
-class FlowRequestVertex(MessageQueueVertex):
+class FlowVertex(MessageQueueVertex):
 
     def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
                  parent: typing.Optional = None, transform_func: typing.Optional[typing.Callable] = None,
@@ -91,3 +101,24 @@ class SequentialExecutionEdge(ExecutableHyperEdge):
             if outputs is not None:
                 for o in outputs:
                     v.push(o)
+
+
+class MessageQueueEdge(ExecutableHyperEdge):
+
+    def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
+                 parent: typing.Optional[HyperVertex], transform_func: typing.Optional[typing.Callable] = None) -> None:
+        super().__init__(name, timestamp, serial, guid, suid, label, parent)
+        if transform_func is None:
+            self.__transform_func = lambda x,y: x
+        else:
+            self.__transform_func = transform_func
+
+
+    def operate(self):
+        outputs = []
+        for v in filter(lambda x: isinstance(x, MessageQueueVertex), self.in_vertices()):
+            outputs.append(self.__transform_func(v(), self._named_attr))
+        for v in filter(lambda x: isinstance(x, MessageQueueVertex), self.out_vertices()):
+            v: MessageQueueVertex
+            for o in outputs:
+                v.push(o)

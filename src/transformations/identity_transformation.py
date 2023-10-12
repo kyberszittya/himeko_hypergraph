@@ -1,10 +1,10 @@
 import typing
 
 from himeko_hypergraph.src.elements.edge import EnumRelationDirection
-from himeko_hypergraph.src.progeny.execution.execution_graph import FlowRequestVertex
+from himeko_hypergraph.src.progeny.execution.execution_graph import FlowVertex
 
 
-class IdentityFlowVertex(FlowRequestVertex):
+class IdentityFlowVertex(FlowVertex):
 
     def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
                  parent: typing.Optional = None, transform_func: typing.Optional[typing.Callable] = None,

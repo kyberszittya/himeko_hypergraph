@@ -80,6 +80,7 @@ class HypergraphElement(HypergraphMetaElement):
                 return self._named_attr[item]
             else:
                 raise KeyError
-        return None
+        #return None
+        raise KeyError
 
 
