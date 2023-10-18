@@ -116,9 +116,12 @@ class MessageQueueEdge(ExecutableHyperEdge):
 
     def operate(self):
         outputs = []
+        out_mq_vertices = list(filter(lambda x: isinstance(x, MessageQueueVertex), self.out_vertices()))
         for v in filter(lambda x: isinstance(x, MessageQueueVertex), self.in_vertices()):
-            outputs.append(self.__transform_func(v(), self._named_attr))
-        for v in filter(lambda x: isinstance(x, MessageQueueVertex), self.out_vertices()):
+            token = self.__transform_func(v(), self._named_attr)
+            for _ in range(len(out_mq_vertices)):
+                outputs.append(token)
+        for v in out_mq_vertices:
             v: MessageQueueVertex
             for o in outputs:
                 v.push(o)
