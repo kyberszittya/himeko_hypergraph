@@ -97,7 +97,7 @@ class HyperEdge(HypergraphElement):
         # Relations
         self.__relations: typing.Dict[bytes, HypergraphRelation] = {}
         # Vertex associations
-        self.__associations: typing[bytes, HypergraphRelation] = {}
+        self.__associations: typing.Dict[bytes, HypergraphRelation] = {}
         # Counts
         self.__cnt_in_relations = 0
         self.__cnt_out_relations = 0
@@ -132,7 +132,7 @@ class HyperEdge(HypergraphElement):
             raise InvalidHypergraphElementException("Unable to remove incompatible element from graph")
 
     def associate_edge(self, r: typing.Tuple[typing.Any, EnumRelationDirection, float|typing.Iterable]):
-        e, d = r
+        e, d, v = r
         if not isinstance(e, HyperEdge):
             raise InvalidHypergraphElementException("Unable to associate edge with incompatible element")
 
@@ -199,5 +199,9 @@ class ExecutableHyperEdge(HyperEdge):
 
     def operate(self, *args, **kwargs):
         raise NotImplementedError
+
+    async def async_operate(self, *args, **kwargs):
+        return await self.operate(*args, *kwargs)
+
 
 

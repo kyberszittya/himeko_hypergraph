@@ -104,7 +104,9 @@ class FactoryHypergraphElements(object):
         return v0
 
     @classmethod
-    def create_vertex_constructor_default_kwargs(cls, t, name: str, timestamp: int, parent: typing.Optional[HyperVertex] = None, **kwargs):
+    def create_vertex_constructor_default_kwargs(cls, t, name: str, timestamp: int,
+                                                 parent: typing.Optional[HyperVertex] = None,
+                                                 **kwargs):
         label, serial, guid, suid = cls.create_default_attributes(name, timestamp, parent)
         v0 = t(name, timestamp, serial, guid, suid, label, parent, **kwargs)
         return v0

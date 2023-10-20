@@ -113,7 +113,6 @@ class MessageQueueEdge(ExecutableHyperEdge):
         else:
             self.__transform_func = transform_func
 
-
     def operate(self):
         outputs = []
         out_mq_vertices = list(filter(lambda x: isinstance(x, MessageQueueVertex), self.out_vertices()))
@@ -125,3 +124,8 @@ class MessageQueueEdge(ExecutableHyperEdge):
             v: MessageQueueVertex
             for o in outputs:
                 v.push(o)
+
+    async def async_operate(self):
+        return self.operate()
+
+
