@@ -1,3 +1,4 @@
+import logging
 import typing
 
 from himeko_hypergraph.src.elements.element import HypergraphElement
@@ -28,6 +29,8 @@ class HyperVertex(HypergraphElement):
 
         # Indexing
         self.__index_named_elements: typing.Dict[str, HypergraphElement] = {}
+        # Adding logger element (ya rly)
+        self._logger = logging.getLogger(f"{self.label}")
 
     @property
     def attribute_names(self):
