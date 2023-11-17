@@ -1,9 +1,9 @@
-from himeko_hypergraph.src.parser.robotics.urdf_parser import ParserUrdf
 import yaml
+from himeko.hbcm.progeny.geometry.nodes import MeshVertex
 
-from himeko_hypergraph.src.progeny.geometry.geometry import Mesh
-from himeko_hypergraph.src.progeny.robotics.kinematics import KinematicLink, KinematicJoint
-from himeko_hypergraph.src.visualization.network_visualization import visualize_node
+from himeko.hbcm.progeny.robotics.kinematics import KinematicLink, KinematicJoint
+from himeko.hbcm.visualization.network_visualization import visualize_node
+from himeko.hbcm.parser.robotics.urdf_parser import ParserUrdf
 
 
 def test_robotino_parsing():
@@ -21,7 +21,7 @@ def test_robotino_parsing():
     assert len(list(robot.get_subelements(lambda x: isinstance(x, KinematicJoint)))) == \
            params['robotino_kinematics']['CNT_ROBOTINO_JOINT']
     unique_files = set()
-    for l in robot.get_subelements(lambda x: isinstance(x, Mesh)):
+    for l in robot.get_subelements(lambda x: isinstance(x, MeshVertex)):
         unique_files.add(l["filename"])
     assert len(unique_files) == 3
 
@@ -41,7 +41,7 @@ def test_robotino_parsing_get_children():
     assert len(list(robot.get_children(lambda x: isinstance(x, KinematicJoint)))) == \
            params['robotino_kinematics']['CNT_ROBOTINO_JOINT']
     unique_files = set()
-    for l in robot.get_children(lambda x: isinstance(x, Mesh)):
+    for l in robot.get_children(lambda x: isinstance(x, MeshVertex)):
         unique_files.add(l["filename"])
     assert len(unique_files) == 0
 

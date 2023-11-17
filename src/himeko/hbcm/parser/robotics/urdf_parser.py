@@ -5,13 +5,13 @@ import typing
 import lxml
 from lxml import objectify
 
-from himeko_hypergraph.src.elements.vertex import HyperVertex
-from himeko_hypergraph.src.factories.creation_elements import FactoryHypergraphElements
-from himeko_hypergraph.src.mapping.bijective_mapping import bijective_mapping
-from himeko_hypergraph.src.progeny.geometry.geometry import VisualGeometry, CollisionGeometry, MeshVertex, \
+from himeko.hbcm.elements.vertex import HyperVertex
+from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
+from himeko.hbcm.mapping.bijective_mapping import bijective_mapping
+from himeko.hbcm.progeny.geometry.nodes import VisualGeometry, CollisionGeometry, MeshVertex, \
     BoxPrimitiveVertex, SpherePrimitiveVertex
-from himeko_hypergraph.src.progeny.robotics.elements import RobotNode
-from himeko_hypergraph.src.progeny.robotics.kinematics import KinematicLink, KinematicJoint
+from himeko.hbcm.progeny.robotics.elements import RobotNode
+from himeko.hbcm.progeny.robotics.kinematics import KinematicLink, KinematicJoint
 
 
 class ParserUrdf(object):

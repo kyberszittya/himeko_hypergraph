@@ -2,10 +2,10 @@ import hashlib
 import typing
 from enum import Enum
 
-from himeko_hypergraph.src.elements.element import HypergraphElement, HypergraphMetaElement
+from himeko.hbcm.elements.element import HypergraphElement, HypergraphMetaElement
 
-from himeko_hypergraph.src.elements.vertex import HyperVertex
-from himeko_hypergraph.src.exceptions.basic_exceptions import InvalidHypergraphElementException, \
+from himeko.hbcm.elements.vertex import HyperVertex
+from himeko.hbcm.exceptions.basic_exceptions import InvalidHypergraphElementException, \
     InvalidRelationDirection
 
 

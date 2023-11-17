@@ -1,6 +1,6 @@
 import typing
 
-from himeko_hypergraph.src.elements.vertex import HyperVertex
+from himeko.hbcm.elements.vertex import HyperVertex
 
 
 class GeometryNode(HyperVertex):

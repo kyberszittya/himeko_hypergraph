@@ -1,7 +1,7 @@
 import abc
 import typing
-from himeko_hypergraph.src.elements.edge import ExecutableHyperEdge, EnumRelationDirection
-from himeko_hypergraph.src.elements.vertex import ExecutableHyperVertex, HyperVertex
+from himeko.hbcm.elements.edge import ExecutableHyperEdge, EnumRelationDirection
+from himeko.hbcm.elements.vertex import ExecutableHyperVertex, HyperVertex
 
 from collections import deque
 

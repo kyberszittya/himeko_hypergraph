@@ -1,12 +1,12 @@
 import typing
 
-from himeko_hypergraph.src.elements.edge import HyperEdge
-from himeko_hypergraph.src.elements.element import HypergraphElement
-from himeko_hypergraph.src.elements.vertex import HyperVertex
+from himeko.hbcm.elements.edge import HyperEdge
+from himeko.hbcm.elements.element import HypergraphElement
+from himeko.hbcm.elements.vertex import HyperVertex
 
 import hashlib
 
-from himeko_hypergraph.src.exceptions.basic_exceptions import InvalidIdentification
+from himeko.hbcm.exceptions.basic_exceptions import InvalidIdentification
 
 
 def create_default_vertex_label(name: str, timestamp: int, serial: int,

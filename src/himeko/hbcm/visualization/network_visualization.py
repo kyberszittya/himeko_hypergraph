@@ -1,9 +1,9 @@
 import networkx as nx
 from matplotlib import pyplot as plt
 
-from himeko_hypergraph.src.elements.edge import HyperEdge
-from himeko_hypergraph.src.elements.vertex import HyperVertex
-from himeko_hypergraph.src.progeny.robotics.elements import RobotNode
+from himeko.hbcm.elements.edge import HyperEdge
+from himeko.hbcm.elements.vertex import HyperVertex
+from himeko.hbcm.progeny.robotics.elements import RobotNode
 
 
 def visualize_node(node: RobotNode, viz_parent=False):

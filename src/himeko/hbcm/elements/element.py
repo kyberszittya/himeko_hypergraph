@@ -1,7 +1,7 @@
 import abc
 import typing
 
-from himeko_hypergraph.src.exceptions.basic_exceptions import InvalidParentException
+from himeko.hbcm.exceptions.basic_exceptions import InvalidParentException
 
 
 class HypergraphMetaElement(abc.ABC):

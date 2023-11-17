@@ -1,8 +1,8 @@
 import typing
 
-from himeko_hypergraph.src.elements.vertex import HyperVertex
-from himeko_hypergraph.src.progeny.robotics.kinematics import KinematicJoint, KinematicLink
-from himeko_hypergraph.src.progeny.robotics.metaelements import RobotComponent, RobotConnection
+from himeko.hbcm.elements.vertex import HyperVertex
+from himeko.hbcm.progeny.robotics.kinematics import KinematicJoint, KinematicLink
+from himeko.hbcm.progeny.robotics.metaelements import RobotComponent, RobotConnection
 
 
 class RobotNode(HyperVertex):

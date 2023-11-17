@@ -1,7 +1,6 @@
-from himeko_hypergraph.src.parser.robotics.urdf_parser import ParserUrdf
-from himeko_hypergraph.src.progeny.geometry.geometry import MeshVertex
-from himeko_hypergraph.src.progeny.robotics.kinematics import KinematicLink, KinematicJoint
-from himeko_hypergraph.src.visualization.network_visualization import visualize_node
+from himeko.hbcm.parser.robotics.urdf_parser import ParserUrdf
+from himeko.hbcm.progeny.geometry.nodes import MeshVertex
+from himeko.hbcm.visualization.network_visualization import visualize_node
 
 
 def test_abb_parsing_visualize_abb():

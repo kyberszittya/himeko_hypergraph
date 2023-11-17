@@ -1,7 +1,7 @@
 import typing
 
-from himeko_hypergraph.src.elements.edge import EnumRelationDirection
-from himeko_hypergraph.src.progeny.execution.execution_graph import FlowVertex
+from himeko.hbcm.elements.edge import EnumRelationDirection
+from himeko.hbcm.progeny.execution.execution_graph import FlowVertex
 
 
 class IdentityFlowVertex(FlowVertex):

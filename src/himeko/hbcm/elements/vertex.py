@@ -1,8 +1,9 @@
 import logging
 import typing
 
-from himeko_hypergraph.src.elements.element import HypergraphElement
-from himeko_hypergraph.src.exceptions.basic_exceptions import InvalidHypergraphElementException, InvalidParentException, ElementSelfParentException
+from himeko.hbcm.elements.element import HypergraphElement
+from himeko.hbcm.exceptions.basic_exceptions import (InvalidHypergraphElementException,
+                                                     InvalidParentException, ElementSelfParentException)
 
 from collections import deque
 

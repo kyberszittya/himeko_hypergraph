@@ -1,5 +1,5 @@
-from himeko_hypergraph.src.elements.edge import EnumRelationDirection
-from himeko_hypergraph.src.factories.creation_elements import FactoryHypergraphElements
+from himeko.hbcm.elements.edge import EnumRelationDirection
+from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
 
 
 def test_edge_creation():

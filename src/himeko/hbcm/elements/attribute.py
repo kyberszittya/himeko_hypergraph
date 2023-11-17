@@ -1,6 +1,6 @@
 import typing
 
-from himeko_hypergraph.src.elements.element import HypergraphElement, HypergraphMetaElement
+from himeko.hbcm.elements.element import HypergraphElement, HypergraphMetaElement
 
 
 class HypergraphAttribute(HypergraphElement):

@@ -1,8 +1,8 @@
 import typing
 
-from himeko_hypergraph.src.elements.edge import EnumRelationDirection
-from himeko_hypergraph.src.elements.vertex import HyperVertex
-from himeko_hypergraph.src.factories.creation_elements import FactoryHypergraphElements
+from himeko.hbcm.elements.edge import EnumRelationDirection
+from himeko.hbcm.elements.vertex import HyperVertex
+from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
 
 
 def bijective_mapping(t, name:str, timestamp: int,  i: HyperVertex, o: HyperVertex,

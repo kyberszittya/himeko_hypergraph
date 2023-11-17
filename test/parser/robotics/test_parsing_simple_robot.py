@@ -1,5 +1,5 @@
-from himeko_hypergraph.src.parser.robotics.urdf_parser import ParserUrdf
-from himeko_hypergraph.src.visualization.network_visualization import visualize_node
+from himeko.hbcm.parser.robotics.urdf_parser import ParserUrdf
+from himeko.hbcm.visualization.network_visualization import visualize_node
 
 
 def test_simple_robot():

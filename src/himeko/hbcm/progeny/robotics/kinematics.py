@@ -1,11 +1,10 @@
 import typing
 
-from himeko_hypergraph.src.elements.attribute import HypergraphAttribute
-from himeko_hypergraph.src.elements.edge import HyperEdge
-from himeko_hypergraph.src.elements.element import HypergraphMetaElement
-from himeko_hypergraph.src.elements.vertex import HyperVertex
-from himeko_hypergraph.src.factories.creation_elements import FactoryHypergraphElements
-from himeko_hypergraph.src.progeny.robotics.metaelements import RobotComponent, RobotConnection
+from himeko.hbcm.elements.attribute import HypergraphAttribute
+from himeko.hbcm.elements.element import HypergraphMetaElement
+from himeko.hbcm.elements.vertex import HyperVertex
+from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
+from himeko.hbcm.progeny.robotics.metaelements import RobotComponent, RobotConnection
 
 class Translate(HypergraphAttribute):
 
