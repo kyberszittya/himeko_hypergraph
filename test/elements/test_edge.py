@@ -3,11 +3,15 @@ from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
 
 
 def test_edge_creation():
-    vparent = FactoryHypergraphElements.create_vertex_default("domain", 0, None)
+    vparent = FactoryHypergraphElements.create_vertex_default(
+        "domain", 0, None)
     nameset = {"v0", "v1"}
-    v0 = FactoryHypergraphElements.create_vertex_default("v0", 0, vparent)
-    v1 = FactoryHypergraphElements.create_vertex_default("v1", 0, vparent)
-    e0 = FactoryHypergraphElements.create_edge_default("e0", 0, vparent)
+    v0 = FactoryHypergraphElements.create_vertex_default(
+        "v0", 0, vparent)
+    v1 = FactoryHypergraphElements.create_vertex_default(
+        "v1", 0, vparent)
+    e0 = FactoryHypergraphElements.create_edge_default(
+        "e0", 0, vparent)
     e0 += (v0, EnumRelationDirection.UNDEFINED, 10)
     e0 += (v1, EnumRelationDirection.UNDEFINED, 20)
     assert e0.name == "e0"
