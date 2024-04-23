@@ -5,6 +5,7 @@ from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
 import networkx as nx
 import matplotlib.pyplot as plt
 
+
 def test_sequence_generation():
     vparent = FactoryHypergraphElements.create_vertex_default(
         "domain", 0)
