@@ -49,6 +49,9 @@ class HyperVertex(HypergraphElement):
         # Set element parent (if parent is not already self)
         if v.parent is not self:
             v._parent = self
+        # Check attribute
+        if isinstance(v, HypergraphElement):
+            self._named_attr[v.name] = v
 
     def remove_element(self, v: HypergraphElement):
         if not isinstance(v, HypergraphElement):
