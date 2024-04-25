@@ -129,8 +129,8 @@ class HyperVertex(HypergraphElement):
                     self.__fringe_append(fringe, __e, d)
         return __res
 
-    def get_children(self, condition: typing.Callable[[HypergraphElement], bool]):
-        return self.get_subelements(condition, 1)
+    def get_children(self, condition: typing.Callable[[HypergraphElement], bool], depth: typing.Optional[int] = 1):
+        return self.get_subelements(condition, depth)
 
 
 class ExecutableHyperVertex(HyperVertex):
