@@ -49,8 +49,8 @@ class HypergraphRelation(HypergraphMetaElement):
         return self.__dir
 
     @direction.setter
-    def direction(self, dir: EnumRelationDirection):
-        self.__dir = dir
+    def direction(self, direction: EnumRelationDirection):
+        self.__dir = direction
 
     @property
     def target(self):
