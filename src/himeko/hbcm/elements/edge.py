@@ -1,5 +1,6 @@
 import hashlib
 import typing
+from dataclasses import dataclass
 from enum import Enum
 
 from himeko.hbcm.elements.element import HypergraphElement, HypergraphMetaElement
@@ -24,6 +25,11 @@ class EnumRelationDirection(Enum):
                 return "->"
             case _:
                 raise InvalidRelationDirection("Invalid direction is provided during relation creation")
+
+
+@dataclass
+class ReferenceQuery(object):
+    reference_query: str
 
 
 class HypergraphRelation(HypergraphMetaElement):
@@ -135,6 +141,7 @@ class HyperEdge(HypergraphElement):
         e, d, v = r
         if not isinstance(e, HyperEdge):
             raise InvalidHypergraphElementException("Unable to associate edge with incompatible element")
+        # TODO: finish
 
     def element_in_edge(self, v: HypergraphElement) -> bool:
         if not isinstance(v, HypergraphElement):

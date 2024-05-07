@@ -21,6 +21,10 @@ class HypergraphAttribute(HypergraphElement):
     def value(self):
         return self.__value
 
+    @value.setter
+    def value(self, v):
+        self.__value = v
+
     @property
     def type(self):
         return self.__type
