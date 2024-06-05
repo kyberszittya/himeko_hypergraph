@@ -4,9 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
 import utm
+import shapely
 
 def test_geo_load():
-    PATH_TEST_GEO = "data/geo"
+    PATH_TEST_GEO = "../../../data/geo"
     x: etree = etree.parse(os.path.join(PATH_TEST_GEO, "activity_12304194656.kml"))
     el_coord = x.xpath('//x:kml/x:Folder/x:Placemark/x:LineString/x:coordinates', namespaces={
         'x': 'http://earth.google.com/kml/2.1'
@@ -66,7 +67,14 @@ def test_geo_load():
         plt.text(float(u[simplex, 0]), float(u[simplex, 1]), f"#{i} ({round(u[simplex, 0],1)},{round(u[simplex, 1], 1)})")
         plt.scatter(u[simplex, 0], u[simplex, 1], color='cyan', linewidth=5)
     for simplex in control_points:
-        plt.plot(u[simplex, 0], u[simplex, 1], color='cyan', linewidth=1, linestyle='-')
+        plt.plot(u[simplex, 0], u[simplex, 1], color='green', linewidth=1, linestyle='solid')
+    control_points_vertices = list(map(lambda x: (u[x, 0], u[x, 1]), control_points))
+    print(control_points_vertices)
+    control_polygon = shapely.Polygon(control_points_vertices)
+
+    area = shapely.area(control_polygon)
+    print(f"Area calcualted: {area}")
+
     plt.grid()
     plt.show()
 
@@ -76,7 +84,32 @@ def test_geo_load():
     for i, cv in enumerate(control_points[:-1]):
         nx = u[control_points[i+1]]
         d = np.sqrt((u[cv][0] - nx[0])**2 + (u[cv][1] - nx[1])**2)
+        d = round(d, 2)
         print(f"Distance #{i}-#{i+1}: {d}")
+
+    # Calculate area
+    n = len(control_points)
+    d0 = control_points_vertices[n - 1][0] * control_points_vertices[0][1]
+    dn = control_points_vertices[0][0] * control_points_vertices[n - 1][1]
+    dax = []
+    day = []
+    for i in range(0, len(control_points) - 1):
+        dax += [(control_points_vertices[i][0] * control_points_vertices[i + 1][1])]
+        day += [(control_points_vertices[i + 1][0] * control_points_vertices[i][1])]
+    print(dax)
+    print(day)
+    print(d0)
+    print(dn)
+    area_gauss = 0.5 * abs(sum(dax) + d0 - sum(day) - dn)
+    print(area_gauss)
+    cv = np.array(control_points_vertices)
+    x = cv[:, 0]
+    y = cv[:, 1]
+    print(x, y)
+    i = np.arange(len(control_points_vertices))
+    shoelace = 0.5 * np.sum(y[i] * (np.roll(x, -1)[i] - np.roll(x, 1)[i]))
+
+    print(shoelace)
 
 
     print(hull.volume)
