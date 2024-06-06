@@ -14,6 +14,7 @@ class EnumRelationDirection(Enum):
     UNDEFINED = 0
     IN = 1
     OUT = 2
+    TEMPLATE = -1
 
     def __str__(self):
         match(self):

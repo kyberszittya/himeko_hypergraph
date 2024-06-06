@@ -32,10 +32,20 @@ class HyperVertex(HypergraphElement):
         self.__index_named_elements: typing.Dict[str, HypergraphElement] = {}
         # Adding logger element (ya rly)
         self._logger = logging.getLogger(f"{self.label}")
+        # Template
+        self._template = None
 
     @property
     def attribute_names(self):
         return [c for c in self._named_attr.keys()]
+
+    @property
+    def template(self):
+        return self._template
+
+    @template.setter
+    def template(self, v):
+        self._template = v
 
     def add_element(self, v: HypergraphElement):
         # Ensure that the element is not itself
