@@ -145,6 +145,12 @@ class HyperVertex(HypergraphElement):
     def get_children(self, condition: typing.Callable[[HypergraphElement], bool], depth: typing.Optional[int] = 1):
         return self.get_subelements(condition, depth)
 
+    def get_children_nodes(self, condition: typing.Callable[[HypergraphElement], bool], depth: typing.Optional[int] = 1):
+        return self.get_subelements(lambda x:
+                                    x is not self and
+                                    isinstance(x, HyperVertex) and
+                                    condition(x), depth)
+
 
 class ExecutableHyperVertex(HyperVertex):
 
