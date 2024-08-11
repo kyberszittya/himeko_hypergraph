@@ -22,6 +22,16 @@ class HypergraphMetaElement(abc.ABC):
         self.__parent = parent
         self.__suid = suid
         self.__label = label
+        # Template
+        self._stereotype = None
+
+    @property
+    def stereotype(self):
+        return self._stereotype
+
+    @stereotype.setter
+    def stereotype(self, v):
+        self._stereotype = v
 
     @property
     def timestamp(self):
