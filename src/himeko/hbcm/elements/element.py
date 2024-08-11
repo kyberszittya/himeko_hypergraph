@@ -79,8 +79,8 @@ class HypergraphElement(HypergraphMetaElement):
         self._elements: typing.Dict[bytes, HypergraphElement] = {}
         # Indexing
         self._index_named_elements: typing.Dict[str, HypergraphElement] = {}
-
-
+        # Usages
+        self._usages: typing.Dict = {}
 
 
     @property
@@ -131,6 +131,18 @@ class HypergraphElement(HypergraphMetaElement):
                 if isinstance(__e, HypergraphElement):
                     self.__fringe_append(fringe, __e, d)
         return __res
+
+
+    def query_subelements(self, query: str):
+        query_split = query.split(".")
+        __next_element = self
+        if query_split[0] != self.name:
+            return None
+        for q in query_split[1:]:
+            __next_element = __next_element[q]
+        return __next_element
+
+
 
     def get_children(self, condition: typing.Callable[[typing.Any], bool], depth: typing.Optional[int] = 1):
         return self.get_subelements(condition, depth)
