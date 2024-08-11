@@ -1,5 +1,6 @@
 import abc
 import typing
+from collections import deque
 
 from himeko.hbcm.exceptions.basic_exceptions import InvalidParentException
 
@@ -74,6 +75,12 @@ class HypergraphElement(HypergraphMetaElement):
         self.__name = name
         # Attributes
         self._named_attr: typing.Dict[str, typing.Any] = {}
+        # Setup elements
+        self._elements: typing.Dict[bytes, HypergraphElement] = {}
+        # Indexing
+        self._index_named_elements: typing.Dict[str, HypergraphElement] = {}
+
+
 
 
     @property
@@ -92,6 +99,39 @@ class HypergraphElement(HypergraphMetaElement):
                 raise KeyError
         raise KeyError
 
+    def __fringe_append(self, fringe, __e, d):
+        for _, ch in __e._elements.items():
+            fringe.appendleft((ch, d + 1))
 
+    def __init_fringe(self, include_self: bool):
+        visited = set()
+        fringe = deque()
+        if include_self:
+            fringe.append((self, 0))
+        else:
+            self.__fringe_append(fringe, self, 0)
+        return visited, fringe
 
+    def get_subelements(self,
+                        condition: typing.Callable[[typing.Any], bool],
+                        depth: typing.Optional[int] = None, include_self=False):
+        visited, fringe = self.__init_fringe(include_self)
+        __res = []
+        if depth is None:
+            bound_condition = lambda x: True
+        else:
+            bound_condition = lambda x: d <= depth
+        while len(fringe) != 0:
+            __e, d = fringe.pop()
+            if __e not in visited and bound_condition(d):
+                visited.add(__e)
+                if condition(__e):
+                    __res.append(__e)
+                    yield __e
+                if isinstance(__e, HypergraphElement):
+                    self.__fringe_append(fringe, __e, d)
+        return __res
+
+    def get_children(self, condition: typing.Callable[[typing.Any], bool], depth: typing.Optional[int] = 1):
+        return self.get_subelements(condition, depth)
 
