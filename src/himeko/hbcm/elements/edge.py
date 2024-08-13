@@ -95,7 +95,7 @@ def relation_name_default(e0: HypergraphElement, v0: HyperVertex, r: EnumRelatio
 class HyperEdge(HypergraphElement):
 
     def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
-                 parent: typing.Optional[HyperVertex]) -> None:
+                 parent: typing.Optional[HypergraphElement]) -> None:
         super().__init__(name, timestamp, serial, guid, suid, label, parent)
         # Parent
         if parent is not None:
@@ -200,16 +200,7 @@ class HyperEdge(HypergraphElement):
         return self.__cnt_out_relations
 
 
-class ExecutableHyperEdge(HyperEdge):
 
-    def __call__(self, *args, **kwargs):
-        return self.operate(*args, **kwargs)
-
-    def operate(self, *args, **kwargs):
-        raise NotImplementedError
-
-    async def async_operate(self, *args, **kwargs):
-        return await self.operate(*args, *kwargs)
 
 
 

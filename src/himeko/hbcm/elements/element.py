@@ -5,6 +5,77 @@ from collections import deque
 from himeko.hbcm.exceptions.basic_exceptions import InvalidParentException
 
 
+class StereotypeDefinition(abc.ABC):
+
+    def __init__(self):
+        self._stereotype = set()
+        self._index_named_elements = {}
+
+    def __add__(self, other):
+        self._stereotype.add(other)
+        # Add index
+        self._index_named_elements[other.name] = other
+        return self
+
+    def __iter__(self):
+        return iter(self._stereotype)
+
+    def __len__(self):
+        return len(self._stereotype)
+
+    def __contains__(self, item):
+        if isinstance(item, str):
+            return item in self.nameset
+        return item in self.__stereotype_fringe()
+
+    def __stereotype_fringe(self):
+        res = set()
+        fringe = deque()
+        fringe.extend(self._stereotype)
+        while len(fringe) != 0:
+            __e = fringe.pop()
+            for x in __e.stereotype.leaf_stereotypes:
+                if x.name not in res:
+                    fringe.appendleft(x)
+            res.add(__e)
+        return res
+
+    def __getitem__(self, item):
+        if isinstance(item, str):
+            return self._index_named_elements[item]
+        if isinstance(item, int):
+            return list(self._stereotype)[item]
+        return None
+
+    def __sub__(self, other):
+        self._stereotype.remove(other)
+        # Remove index
+        self._index_named_elements.pop(other.name)
+        return self
+
+    @property
+    def nameset(self):
+        res = set()
+        fringe = deque()
+        fringe.extend(self._stereotype)
+        while len(fringe) != 0:
+            __e = fringe.pop()
+            for x in __e.stereotype.leaf_stereotypes:
+                if x.name not in res:
+                    fringe.appendleft(x)
+            res.add(__e.name)
+        return res
+
+    @property
+    def leaf_stereotypes(self):
+        return self._stereotype
+
+    @property
+    def elements(self):
+        return self._stereotype
+
+
+
 class HypergraphMetaElement(abc.ABC):
 
     def __init__(self, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
@@ -24,7 +95,7 @@ class HypergraphMetaElement(abc.ABC):
         self.__suid = suid
         self.__label = label
         # Template
-        self._stereotype = None
+        self._stereotype = StereotypeDefinition()
 
     @property
     def stereotype(self):
@@ -32,7 +103,12 @@ class HypergraphMetaElement(abc.ABC):
 
     @stereotype.setter
     def stereotype(self, v):
-        self._stereotype = v
+        self._stereotype += v
+
+    def add_stereotype(self, v):
+        self._stereotype += v
+
+
 
     @property
     def timestamp(self):
@@ -82,7 +158,6 @@ class HypergraphElement(HypergraphMetaElement):
         # Usages
         self._usages: typing.Dict = {}
 
-
     @property
     def name(self):
         return self.__name
@@ -98,6 +173,11 @@ class HypergraphElement(HypergraphMetaElement):
             else:
                 raise KeyError
         raise KeyError
+
+    def __contains__(self, item):
+        if isinstance(item, str):
+            return item in self._named_attr
+        return False
 
     def __fringe_append(self, fringe, __e, d):
         for _, ch in __e._elements.items():

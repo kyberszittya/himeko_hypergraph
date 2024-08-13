@@ -97,12 +97,6 @@ class HyperVertex(HypergraphElement):
     def __hash__(self):
         return int.from_bytes(self.guid, "big")
 
-
-
-
-
-
-
     def get_children_nodes(self, condition: typing.Callable[[HypergraphElement], bool], depth: typing.Optional[int] = 1):
         return self.get_subelements(lambda x:
                                     x is not self and
@@ -110,11 +104,5 @@ class HyperVertex(HypergraphElement):
                                     condition(x), depth)
 
 
-class ExecutableHyperVertex(HyperVertex):
 
-    def __call__(self, *args, **kwargs):
-        return self.operate(*args, **kwargs)
-
-    def operate(self, *args, **kwargs):
-        raise NotImplementedError
 

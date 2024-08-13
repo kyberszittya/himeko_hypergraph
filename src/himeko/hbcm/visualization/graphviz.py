@@ -13,8 +13,9 @@ def create_dot_graph(root: HyperVertex, **kwargs):
         # Check if we want to add stereotype
         if "stereotype" in kwargs and kwargs["stereotype"]:
             # Add connection to stereotype
-            if n.stereotype is not None:
-                G.add_edge(n.name, n.stereotype.name, style="dashed")
+            if len(n.stereotype) > 0:
+                for st in n.stereotype:
+                    G.add_edge(n.name, st.name, style="dashed")
     for e in root.get_children(lambda x: isinstance(x, HyperEdge)):
         G.add_node(e.name, shape="box")
         for r in e.out_relations():
