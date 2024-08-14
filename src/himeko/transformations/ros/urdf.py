@@ -13,12 +13,16 @@ class TransformationUrdf(ExecutableHyperEdge):
     def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
                  parent: HypergraphElement = None, kinematics_meta=None):
         super().__init__(name, timestamp, serial, guid, suid, label, parent)
-        print(kinematics_meta)
         self._named_attr["kinematics_meta"] = kinematics_meta
         self.robot_root_xml = etree.Element("robot")
 
 
     def __add_links(self, root):
+        # Geometry
+        _box = self["kinematics_meta"]["geometry"]["box"]
+        _cylinder = self["kinematics_meta"]["geometry"]["cylinder"]
+        _sphere = self["kinematics_meta"]["geometry"]["sphere"]
+        # Get link element
         link_element = self["kinematics_meta"]["elements"]["link"]
         op = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
             QueryIsStereotypeOperation, "link_stereotype", 0,
@@ -31,6 +35,39 @@ class TransformationUrdf(ExecutableHyperEdge):
             link_xml.set("name", link.name)
             # Add link to robot
             self.robot_root_xml.append(link_xml)
+            # Geometry
+            _visual = link["visual"]
+            # Create visual element
+            visual_xml = etree.Element("visual")
+            # Add visual to link
+            link_xml.append(visual_xml)
+            # Create geometry element
+            geometry_xml = etree.Element("geometry")
+            # Add geometry to visual
+            visual_xml.append(geometry_xml)
+            # Check for different geometries
+            if _cylinder in _visual.value.stereotype:
+                # Add cylinder
+                cylinder_xml = etree.Element("cylinder")
+                length, radius = _visual.value["dimension"].value
+                cylinder_xml.set("length", str(length))
+                cylinder_xml.set("radius", str(radius))
+                # Add to visual
+                geometry_xml.append(cylinder_xml)
+            elif _box in _visual.value.stereotype:
+                # Add box
+                box_xml = etree.Element("box")
+                size = _visual.value["dimension"].value
+                box_xml.set("size", " ".join([str(s) for s in size]))
+                # Add to visual
+                geometry_xml.append(box_xml)
+            elif _sphere in _visual.value.stereotype:
+                # Add sphere
+                sphere_xml = etree.Element("sphere")
+                radius = _visual.value["dimension"].value
+                sphere_xml.set("radius", str(radius))
+                # Add to visual
+                geometry_xml.append(sphere_xml)
 
     def __add_joints(self, root):
         joint_element = self["kinematics_meta"]["elements"]["joint"]
