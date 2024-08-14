@@ -2,8 +2,7 @@ import logging
 import typing
 
 from himeko.hbcm.elements.element import HypergraphElement
-from himeko.hbcm.exceptions.basic_exceptions import (InvalidHypergraphElementException,
-                                                     InvalidParentException, ElementSelfParentException)
+from himeko.hbcm.exceptions.basic_exceptions import InvalidParentException
 
 
 
@@ -34,37 +33,6 @@ class HyperVertex(HypergraphElement):
         return [c for c in self._named_attr.keys()]
 
 
-
-    def add_element(self, v: HypergraphElement):
-        # Ensure that the element is not itself
-        if v is self:
-            raise ElementSelfParentException("Parent element cannot be itself (composition loop)")
-        # Check if element is a hypergraph element anyway
-        if not isinstance(v, HypergraphElement):
-            raise InvalidHypergraphElementException("Unable to add incompatible element")
-        self._elements[v.guid] = v
-        self._index_named_elements[v.name] = v
-        # Set element parent (if parent is not already self)
-        if v.parent is not self:
-            v._parent = self
-        # Check attribute
-        if isinstance(v, HypergraphElement):
-            self._named_attr[v.name] = v
-
-    def remove_element(self, v: HypergraphElement):
-        if not isinstance(v, HypergraphElement):
-            raise InvalidHypergraphElementException("Unable to remove incompatible element")
-        self._elements.pop(v.guid)
-
-    def update_element(self, v: HypergraphElement):
-        if v.name not in self._index_named_elements:
-            self.add_element(v)
-        else:
-            # Remove existing element
-            __tmp = self._index_named_elements[v.name]
-            self._elements.pop(__tmp.guid)
-            self._index_named_elements[v.name] = v
-            self._index_named_elements[v.guid] = v
 
     def __iadd__(self, other):
         if isinstance(other, typing.Iterable):

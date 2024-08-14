@@ -2,7 +2,8 @@ import abc
 import typing
 from collections import deque
 
-from himeko.hbcm.exceptions.basic_exceptions import InvalidParentException
+from himeko.hbcm.exceptions.basic_exceptions import (InvalidHypergraphElementException,
+                                                     InvalidParentException, ElementSelfParentException)
 
 
 class StereotypeDefinition(abc.ABC):
@@ -212,6 +213,38 @@ class HypergraphElement(HypergraphMetaElement):
                     self.__fringe_append(fringe, __e, d)
         return __res
 
+    def add_element(self, v):
+        v: HypergraphElement
+        # Ensure that the element is not itself
+        if v is self:
+            raise ElementSelfParentException("Parent element cannot be itself (composition loop)")
+        # Check if element is a hypergraph element anyway
+        if not isinstance(v, HypergraphElement):
+            raise InvalidHypergraphElementException("Unable to add incompatible element")
+        self._elements[v.guid] = v
+        self._index_named_elements[v.name] = v
+        # Set element parent (if parent is not already self)
+        if v.parent is not self:
+            v._parent = self
+        # Check attribute
+        if isinstance(v, HypergraphElement):
+            self._named_attr[v.name] = v
+
+    def remove_element(self, v: HypergraphMetaElement):
+        if not isinstance(v, HypergraphElement):
+            raise InvalidHypergraphElementException("Unable to remove incompatible element")
+        self._elements.pop(v.guid)
+
+    def update_element(self, v):
+        v: HypergraphElement
+        if v.name not in self._index_named_elements:
+            self.add_element(v)
+        else:
+            # Remove existing element
+            __tmp = self._index_named_elements[v.name]
+            self._elements.pop(__tmp.guid)
+            self._index_named_elements[v.name] = v
+            self._index_named_elements[v.guid] = v
 
     def query_subelements(self, query: str):
         query_split = query.split(".")
@@ -221,8 +254,6 @@ class HypergraphElement(HypergraphMetaElement):
         for q in query_split[1:]:
             __next_element = __next_element[q]
         return __next_element
-
-
 
     def get_children(self, condition: typing.Callable[[typing.Any], bool], depth: typing.Optional[int] = 1):
         return self.get_subelements(condition, depth)

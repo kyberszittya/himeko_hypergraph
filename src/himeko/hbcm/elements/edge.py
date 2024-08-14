@@ -199,6 +199,20 @@ class HyperEdge(HypergraphElement):
     def cnt_out_relations(self):
         return self.__cnt_out_relations
 
+    @property
+    def directed_relation_permutation(self):
+        for x in self.in_relations():
+            for y in self.out_relations():
+                yield x, y
+
+    def directed_relation_permutation_with_condition(self, f: typing.Callable[[typing.Any], bool]):
+        for x in self.in_relations():
+            for y in self.out_relations():
+                if f(x) and f(y):
+                    yield x, y
+
+    def __hash__(self):
+        return int.from_bytes(self.guid, "big")
 
 
 
