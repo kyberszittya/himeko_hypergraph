@@ -1,3 +1,4 @@
+from himeko.hbcm.elements.attribute import HypergraphAttribute
 from himeko.hbcm.elements.edge import HyperEdge
 from himeko.hbcm.elements.element import HypergraphElement
 from himeko.hbcm.elements.executable.edge import ExecutableHyperEdge
@@ -5,6 +6,7 @@ from himeko.hbcm.elements.executable.edge import ExecutableHyperEdge
 from lxml import etree
 import numpy as np
 
+from himeko.hbcm.elements.vertex import HyperVertex
 from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
 from himeko.hbcm.queries.composition import QueryIsStereotypeOperation
 
@@ -77,7 +79,21 @@ class TransformationUrdf(ExecutableHyperEdge):
             link_xml.append(visual_xml)
             # Add geometry to visual
             visual_geom = self.__generate_geometry(_visual, *geometries)
+            # Wrap up
             visual_xml.append(visual_geom)
+            # Color
+            _color_element = link["color"]
+            if isinstance(_color_element.value, HyperVertex) or isinstance(_color_element.value, HypergraphAttribute):
+                _color_element = _color_element.value
+            _color_xml = etree.Element("material")
+            _color_xml.set("name", _color_element.name)
+            _color_val_xml = etree.Element("color")
+            if len(_color_element.value) == 3:
+                _color_val_xml.set("rgb", " ".join([str(x) for x in _color_element.value]))
+            elif len(_color_element.value) == 4:
+                _color_val_xml.set("rgba", " ".join([str(x) for x in _color_element.value]))
+            _color_xml.append(_color_val_xml)
+            visual_xml.append(_color_xml)
             # Get collision
             _collision = link["collision"]
             # Create collision element
