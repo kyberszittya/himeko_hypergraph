@@ -49,6 +49,35 @@ class TransformationUrdf(ExecutableHyperEdge):
             geometry_xml.append(sphere_xml)
         return geometry_xml
 
+    def calc_inertia(self, geometry, mass, *standard_geometries):
+
+        _box, _cylinder, _sphere = standard_geometries
+        ixx, iyy, izz = 1, 1, 1
+        ixz, ixy, iyz = 0, 0, 0
+        dimensions = geometry["dimension"].value
+        if _cylinder in geometry.stereotype:
+            # Cylinder
+            length, radius = dimensions
+            # Calculate inertia
+            ixx = (1 / 12) * mass * (3 * radius ** 2 + length ** 2)
+            iyy = ixx
+            izz = (1 / 2) * mass * radius ** 2
+        elif _box in geometry.stereotype:
+            # Box
+            x, y, z = dimensions
+            # Calculate inertia
+            ixx = (1 / 12) * mass * (y ** 2 + z ** 2)
+            iyy = (1 / 12) * mass * (x ** 2 + z ** 2)
+            izz = (1 / 12) * mass * (x ** 2 + y ** 2)
+        elif _sphere in geometry.stereotype:
+            # Sphere
+            r = dimensions[0]
+            # Calculate inertia
+            ixx = (2 / 5) * mass * r ** 2
+            iyy = ixx
+            izz = ixx
+        return ixx, iyy, izz, ixz, ixy, iyz
+
 
 
     def __add_links(self, root):
@@ -71,6 +100,32 @@ class TransformationUrdf(ExecutableHyperEdge):
             link_xml.set("name", link.name)
             # Add link to robot
             self.robot_root_xml.append(link_xml)
+            # Inertia
+            # Create inertia element
+            inertial_xml = etree.Element("inertial")
+            # Add inertia to link
+            link_xml.append(inertial_xml)
+            # Add mass to inertia
+            mass_xml = etree.Element("mass")
+            mass_xml.set("value", str(link["mass"].value))
+            inertial_xml.append(mass_xml)
+            # Add inertia calculation
+            if "inertia" not in link:
+                ixx, iyy, izz, ixz, ixy, iyz = self.calc_inertia(
+                    link["collision"].value,
+                    link["mass"].value,
+                    *geometries
+                )
+            else:
+                ixx, iyy, izz, ixz, ixy, iyz = link["inertia"].value
+            inertia_xml = etree.Element("inertia")
+            inertia_xml.set("ixx", str(ixx))
+            inertia_xml.set("iyy", str(iyy))
+            inertia_xml.set("izz", str(izz))
+            inertia_xml.set("ixz", str(ixz))
+            inertia_xml.set("ixy", str(ixy))
+            inertia_xml.set("iyz", str(iyz))
+            inertial_xml.append(inertia_xml)
             # Geometry
             _visual = link["visual"]
             # Create visual element
