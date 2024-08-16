@@ -172,6 +172,9 @@ class HypergraphElement(HypergraphMetaElement):
             if item in self._named_attr:
                 return self._named_attr[item]
             else:
+                for s in self.stereotype.elements:
+                    if item in s:
+                        return s[item]
                 raise KeyError
         raise KeyError
 

@@ -183,7 +183,9 @@ class HyperEdge(HypergraphElement):
         return self
 
     def __contains__(self, item):
-        if isinstance(item, HypergraphElement):
+        if isinstance(item, str):
+            return item in self._named_attr
+        elif isinstance(item, HypergraphElement):
             return self.element_in_edge(item)
 
     def __len__(self):

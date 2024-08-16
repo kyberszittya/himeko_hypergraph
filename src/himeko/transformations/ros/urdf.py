@@ -229,6 +229,13 @@ class TransformationUrdf(ExecutableHyperEdge):
                 axis_xml = self.__add_axis(j, axis_element)
                 joint_xml.append(axis_xml)
                 # Add limit
+                limit_xml = etree.Element("limit")
+                limit = j["limit"].value
+                limit_xml.set("lower", str(limit["lower"].value))
+                limit_xml.set("upper", str(limit["upper"].value))
+                limit_xml.set("effort", str(limit["effort"].value))
+                limit_xml.set("velocity", str(limit["velocity"].value))
+                joint_xml.append(limit_xml)
                 # Add name to element
                 if len(permutations) == 1:
                     joint_xml.set("name", j.name)
