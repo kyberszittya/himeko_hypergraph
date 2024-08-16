@@ -213,6 +213,10 @@ class HyperEdge(HypergraphElement):
                 if f(x) and f(y):
                     yield x, y
 
+    def sub_edges(self, depth=None):
+        for x in self.get_children(lambda x: isinstance(x, HyperEdge), depth):
+            yield x
+
     def __hash__(self):
         return int.from_bytes(self.guid, "big")
 
