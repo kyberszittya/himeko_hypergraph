@@ -216,8 +216,8 @@ class HypergraphElement(HypergraphMetaElement):
                     self.__fringe_append(fringe, __e, d)
         return __res
 
-    def add_element(self, v):
-        v: HypergraphElement
+    def add_element(self, _v):
+        v: HypergraphElement = _v
         # Ensure that the element is not itself
         if v is self:
             raise ElementSelfParentException("Parent element cannot be itself (composition loop)")
@@ -238,8 +238,8 @@ class HypergraphElement(HypergraphMetaElement):
             raise InvalidHypergraphElementException("Unable to remove incompatible element")
         self._elements.pop(v.guid)
 
-    def update_element(self, v):
-        v: HypergraphElement
+    def update_element(self, _v):
+        v: HypergraphElement = _v
         if v.name not in self._index_named_elements:
             self.add_element(v)
         else:

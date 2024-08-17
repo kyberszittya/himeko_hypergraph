@@ -24,6 +24,9 @@ class HyperVertex(HypergraphElement):
         # Add current element to parent
         if parent is not None:
             parent.add_element(self)
+        # Setup degree attributes
+        self._degree_in = 0
+        self._degree_out = 0
         # Adding logger element (ya rly)
         self._logger = logging.getLogger(f"{self.label}")
 
@@ -32,6 +35,29 @@ class HyperVertex(HypergraphElement):
     def attribute_names(self):
         return [c for c in self._named_attr.keys()]
 
+    @property
+    def degree_in(self):
+        return self._degree_in
+
+    @property
+    def degree_out(self):
+        return self._degree_out
+
+    def inc_degree_in(self):
+        self._degree_in += 1
+
+    def inc_degree_out(self):
+        self._degree_out += 1
+
+    def dec_degree_in(self):
+        self._degree_in -= 1
+
+    def dec_degree_out(self):
+        self._degree_out -= 1
+
+    @property
+    def degree(self):
+        return self._degree_in + self._degree_out
 
 
     def __iadd__(self, other):

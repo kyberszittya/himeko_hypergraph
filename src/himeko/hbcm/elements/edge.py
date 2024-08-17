@@ -127,11 +127,18 @@ class HyperEdge(HypergraphElement):
         match d:
             case EnumRelationDirection.IN:
                 self.__cnt_in_relations += 1
+                # Increment degree (out)
+                v.inc_degree_out()
             case EnumRelationDirection.OUT:
                 self.__cnt_out_relations += 1
+                # Increment degree (in)
+                v.inc_degree_in()
             case EnumRelationDirection.UNDEFINED:
                 self.__cnt_out_relations += 1
                 self.__cnt_in_relations += 1
+                # Increment degree (both in and out)
+                v.inc_degree_out()
+                v.inc_degree_in()
 
     def unassociate_vertex(self, v: HyperVertex):
         # TODO: unnassociation
