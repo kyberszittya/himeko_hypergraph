@@ -2,11 +2,11 @@ import logging
 import typing
 
 from himeko.hbcm.elements.element import HypergraphElement
+from himeko.hbcm.elements.interfaces.base_interfaces import IComposable
 from himeko.hbcm.exceptions.basic_exceptions import InvalidParentException
 
 
-
-class HyperVertex(HypergraphElement):
+class HyperVertex(HypergraphElement, IComposable):
 
     def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
                  parent: typing.Optional = None):

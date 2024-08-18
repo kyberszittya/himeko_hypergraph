@@ -2,6 +2,7 @@ import abc
 import typing
 from collections import deque
 
+from himeko.hbcm.elements.interfaces.base_interfaces import IComposable
 from himeko.hbcm.exceptions.basic_exceptions import (InvalidHypergraphElementException,
                                                      InvalidParentException, ElementSelfParentException)
 
@@ -154,6 +155,8 @@ class HypergraphElement(HypergraphMetaElement):
         self._named_attr: typing.Dict[str, typing.Any] = {}
         # Setup elements
         self._elements: typing.Dict[bytes, HypergraphElement] = {}
+        # Composite graph elements (vertices and edges) count
+        self._composite_count = 0
         # Indexing
         self._index_named_elements: typing.Dict[str, HypergraphElement] = {}
         # Usages
@@ -232,6 +235,12 @@ class HypergraphElement(HypergraphMetaElement):
         # Check attribute
         if isinstance(v, HypergraphElement):
             self._named_attr[v.name] = v
+        # Update composite count
+        if isinstance(v, IComposable):
+            self._composite_count += 1
+
+    def get_element(self, key: str):
+        return self._index_named_elements[key]
 
     def remove_element(self, v: HypergraphMetaElement):
         if not isinstance(v, HypergraphElement):
@@ -249,6 +258,18 @@ class HypergraphElement(HypergraphMetaElement):
             self._index_named_elements[v.name] = v
             self._index_named_elements[v.guid] = v
 
+
+    @property
+    def count_composite_elements(self):
+        return self._composite_count
+
+    @property
+    def leaf_elements(self):
+        return self.get_children(lambda x: x.count_composite_elements == 0, None)
+
+    def get_leaf_elements(self):
+        return self.leaf_elements
+
     def query_subelements(self, query: str):
         query_split = query.split(".")
         __next_element = self
@@ -260,4 +281,15 @@ class HypergraphElement(HypergraphMetaElement):
 
     def get_children(self, condition: typing.Callable[[typing.Any], bool], depth: typing.Optional[int] = 1):
         return self.get_subelements(condition, depth)
+
+    def get_all_children(self, condition: typing.Callable[[typing.Any], bool]):
+        return self.get_subelements(condition, None)
+
+    def get_parent(self):
+        return self.parent
+
+    def get_siblings(self, f):
+        if self.parent is None:
+            return None
+        return self.get_parent().get_children(f, 1)
 
