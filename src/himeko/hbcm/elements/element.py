@@ -246,6 +246,10 @@ class HypergraphElement(HypergraphMetaElement):
         if not isinstance(v, HypergraphElement):
             raise InvalidHypergraphElementException("Unable to remove incompatible element")
         self._elements.pop(v.guid)
+        self._index_named_elements.pop(v.name)
+        # Update composite count
+        if isinstance(v, IComposable):
+            self._composite_count -= 1
 
     def update_element(self, _v):
         v: HypergraphElement = _v
