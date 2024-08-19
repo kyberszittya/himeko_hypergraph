@@ -24,11 +24,21 @@ def create_dot_graph(root: HyperVertex, **kwargs):
             G.add_edge(r.target.name, e.name,  label=str(r.value))
     # Check if composition should be visualized
     if "composition" in kwargs and kwargs["composition"]:
-        for n in root.get_children(lambda x: isinstance(x, HypergraphElement), None):
-            if n.parent is not None:
-                G.add_edge(n.parent.name, n.name, style="dotted")
+        if "composition_depth" in kwargs:
+            G = create_composition_tree(root, G, depth=kwargs["composition_depth"])
+        else:
+            G = create_composition_tree(root, G, **kwargs)
     return G
 
+
+def create_composition_tree(root: HyperVertex, G=None, depth=1, **kwargs):
+    if G is None:
+        G = pgv.AGraph(directed=True)
+    # Get composition
+    for n in root.get_children(lambda x: isinstance(x, HypergraphElement), depth):
+        if n.parent is not None:
+            G.add_edge(n.parent.name, n.name, style="dotted")
+    return G
 
 def visualize_dot_graph(G, path: str):
     G.layout(prog="dot")
