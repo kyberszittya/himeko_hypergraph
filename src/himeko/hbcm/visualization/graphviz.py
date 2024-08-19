@@ -24,7 +24,7 @@ def create_dot_graph(root: HyperVertex, **kwargs):
             G.add_edge(r.target.name, e.name,  label=str(r.value))
     # Check if composition should be visualized
     if "composition" in kwargs and kwargs["composition"]:
-        for n in root.get_children(lambda x: isinstance(x, HypergraphElement)):
+        for n in root.get_children(lambda x: isinstance(x, HypergraphElement), None):
             if n.parent is not None:
                 G.add_edge(n.parent.name, n.name, style="dotted")
     return G
