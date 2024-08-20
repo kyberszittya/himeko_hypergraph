@@ -59,7 +59,6 @@ class HyperVertex(HypergraphElement, IComposable):
     def degree(self):
         return self._degree_in + self._degree_out
 
-
     def __iadd__(self, other):
         if isinstance(other, typing.Iterable):
             for o in other:
@@ -96,7 +95,3 @@ class HyperVertex(HypergraphElement, IComposable):
                                     x is not self and
                                     isinstance(x, HyperVertex) and
                                     condition(x), depth)
-
-
-
-

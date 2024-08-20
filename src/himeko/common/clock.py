@@ -36,3 +36,17 @@ class SystemTimeClock(AbstractClock):
 
     def tick(self) -> int:
         return time.time_ns()
+
+
+class NullClock(AbstractClock):
+    """
+    Null clock is used for testing purposes
+
+    Avoid using it in production code
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def tick(self) -> int:
+        return 0

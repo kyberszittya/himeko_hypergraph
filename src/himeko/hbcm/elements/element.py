@@ -166,6 +166,9 @@ class HypergraphElement(HypergraphMetaElement):
     def name(self):
         return self.__name
 
+    def __lt__(self, other):
+        return self.guid < other.guid
+
     def __setitem__(self, key: str, value):
         if isinstance(key, str):
             self._named_attr[key] = value
@@ -272,7 +275,7 @@ class HypergraphElement(HypergraphMetaElement):
         return self.get_children(lambda x: x.count_composite_elements == 0, None)
 
     def get_leaf_elements(self):
-        return self.leaf_elements
+        return sorted(self.leaf_elements)
 
     def query_subelements(self, query: str):
         query_split = query.split(".")
