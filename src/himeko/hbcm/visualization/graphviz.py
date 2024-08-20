@@ -31,16 +31,31 @@ def create_dot_graph(root: HyperVertex, **kwargs):
     return G
 
 
-def create_composition_tree(root: HyperVertex, G=None, depth=1, **kwargs):
+def create_composition_tree(root: HyperVertex, G=None, depth=1):
     if G is None:
         G = pgv.AGraph(directed=True)
     # Get composition
     for n in root.get_children(lambda x: isinstance(x, HypergraphElement), depth):
+        print(n.name, n.parent)
         if n.parent is not None:
             G.add_edge(n.parent.name, n.name, style="dotted")
     return G
+
 
 def visualize_dot_graph(G, path: str):
     G.layout(prog="dot")
     G.draw(path)
     return G
+
+
+def visualize_prufer_code(code, degree, node_list, path):
+    G = pgv.AGraph(directed=True)
+    for i, c in enumerate(code):
+        for j, n in enumerate(node_list):
+            if degree[n] == 1:
+                degree[n] -= 1
+                degree[code[i]] -= 1
+                G.add_edge(n.name, code[i].name)
+                break
+    G.layout(prog="dot")
+    G.draw(path)

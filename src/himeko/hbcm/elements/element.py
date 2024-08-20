@@ -93,7 +93,7 @@ class HypergraphMetaElement(abc.ABC):
         self.__serial = serial
         if not (parent is None or isinstance(parent, HypergraphMetaElement)):
             raise InvalidParentException("Invalid parent element to hypergraph element")
-        self.__parent = parent
+        self._parent = parent
         self.__suid = suid
         self.__label = label
         # Template
@@ -109,8 +109,6 @@ class HypergraphMetaElement(abc.ABC):
 
     def add_stereotype(self, v):
         self._stereotype += v
-
-
 
     @property
     def timestamp(self):
@@ -130,7 +128,7 @@ class HypergraphMetaElement(abc.ABC):
 
     @property
     def parent(self):
-        return self.__parent
+        return self._parent
 
     @property
     def label(self):
