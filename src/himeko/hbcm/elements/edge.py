@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from himeko.hbcm.elements.element import HypergraphElement, HypergraphMetaElement
+from himeko.hbcm.elements.interfaces.base_interfaces import IComposable
 
 from himeko.hbcm.elements.vertex import HyperVertex
 from himeko.hbcm.exceptions.basic_exceptions import InvalidHypergraphElementException, \
@@ -128,17 +129,20 @@ class HyperEdge(HypergraphElement):
             case EnumRelationDirection.IN:
                 self.__cnt_in_relations += 1
                 # Increment degree (out)
-                v.inc_degree_out()
+                if isinstance(v, IComposable):
+                    v.inc_degree_out()
             case EnumRelationDirection.OUT:
                 self.__cnt_out_relations += 1
                 # Increment degree (in)
-                v.inc_degree_in()
+                if isinstance(v, IComposable):
+                    v.inc_degree_in()
             case EnumRelationDirection.UNDEFINED:
                 self.__cnt_out_relations += 1
                 self.__cnt_in_relations += 1
                 # Increment degree (both in and out)
-                v.inc_degree_out()
-                v.inc_degree_in()
+                if isinstance(v, IComposable):
+                    v.inc_degree_out()
+                    v.inc_degree_in()
 
     def unassociate_vertex(self, v: HyperVertex):
         # TODO: unnassociation

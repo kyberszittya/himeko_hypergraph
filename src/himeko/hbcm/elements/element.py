@@ -5,6 +5,7 @@ from collections import deque
 from himeko.hbcm.elements.interfaces.base_interfaces import IComposable
 from himeko.hbcm.exceptions.basic_exceptions import (InvalidHypergraphElementException,
                                                      InvalidParentException, ElementSelfParentException)
+from himeko.hbcm.graph.prufer_sequence import generate_naive_prufer
 
 
 class StereotypeDefinition(abc.ABC):
@@ -159,6 +160,12 @@ class HypergraphElement(HypergraphMetaElement):
         self._index_named_elements: typing.Dict[str, HypergraphElement] = {}
         # Usages
         self._usages: typing.Dict = {}
+        # Element sequence
+        self._element_sequence = None
+        self._element_permutation = {}
+        self._permutation_element = {}
+        self._prufer_code = None
+        self._node_map = {}
 
     @property
     def name(self):
@@ -181,6 +188,32 @@ class HypergraphElement(HypergraphMetaElement):
                         return s[item]
                 raise KeyError
         raise KeyError
+
+    def __generate_permuations(self):
+        self._prufer_code, self._element_sequence, self._node_map = (
+            generate_naive_prufer(self))
+        self._element_sequence.append(self)
+        for i, s in enumerate(self._element_sequence):
+            self._element_permutation[s] = i
+            self._permutation_element[i] = s
+
+    @property
+    def permutation_sequence(self):
+        if self._element_sequence is None:
+            self.__generate_permuations()
+        return self._element_sequence
+
+    @property
+    def element_permutation(self):
+        if self._element_sequence is None:
+            self.__generate_permuations()
+        return self._element_permutation
+
+    @property
+    def permutation_element(self):
+        if self._element_sequence is None:
+            self.__generate_permuations()
+        return self._permutation_element
 
     def __contains__(self, item):
         if isinstance(item, str):

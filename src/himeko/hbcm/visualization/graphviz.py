@@ -27,7 +27,7 @@ def create_dot_graph(root: HyperVertex, **kwargs):
         if "composition_depth" in kwargs:
             G = create_composition_tree(root, G, depth=kwargs["composition_depth"])
         else:
-            G = create_composition_tree(root, G, **kwargs)
+            G = create_composition_tree(root, G)
     return G
 
 
@@ -36,7 +36,6 @@ def create_composition_tree(root: HyperVertex, G=None, depth=1):
         G = pgv.AGraph(directed=True)
     # Get composition
     for n in root.get_children(lambda x: isinstance(x, HypergraphElement), depth):
-        print(n.name, n.parent)
         if n.parent is not None:
             G.add_edge(n.parent.name, n.name, style="dotted")
     return G
