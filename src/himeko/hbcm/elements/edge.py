@@ -5,6 +5,7 @@ from enum import Enum
 
 from himeko.hbcm.elements.element import HypergraphElement, HypergraphMetaElement
 from himeko.hbcm.elements.interfaces.base_interfaces import IComposable
+from himeko.hbcm.elements.interfaces.transformation_interfaces import ITensorTransformation
 
 from himeko.hbcm.elements.vertex import HyperVertex
 from himeko.hbcm.exceptions.basic_exceptions import InvalidHypergraphElementException, \
@@ -93,7 +94,7 @@ def relation_name_default(e0: HypergraphElement, v0: HyperVertex, r: EnumRelatio
     return f"{e0.name}{str(r)}{v0.label}"
 
 
-class HyperEdge(HypergraphElement):
+class HyperEdge(HypergraphElement, ITensorTransformation):
 
     def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
                  parent: typing.Optional[HypergraphElement]) -> None:
@@ -109,6 +110,10 @@ class HyperEdge(HypergraphElement):
         # Counts
         self.__cnt_in_relations = 0
         self.__cnt_out_relations = 0
+        # Permutation tuples
+        self._permutation_tuples = []
+        # Adjacency tensor
+        self._adj = None
 
     def __create_default_relation_guid(self, label: str) -> bytes:
         return hashlib.sha384(label.encode('utf-8')).digest()
@@ -212,6 +217,19 @@ class HyperEdge(HypergraphElement):
     def cnt_out_relations(self):
         return self.__cnt_out_relations
 
+    def permutation_tuples(self):
+        for x in self.in_relations():
+            for y in self.out_relations():
+                yield x.target, y.target, x.value, y.value
+
+    def update_permutation_tuples(self):
+        for t in self.permutation_tuples():
+            self._permutation_tuples.append(t)
+
+    @property
+    def element_permutation(self):
+        return self._permutation_tuples
+
     @property
     def directed_relation_permutation(self):
         for x in self.in_relations():
@@ -228,10 +246,13 @@ class HyperEdge(HypergraphElement):
         for x in self.get_children(lambda x: isinstance(x, HyperEdge), depth):
             yield x
 
+    @property
+    def adjacency_tensor(self):
+        return self._adj
+
+    @adjacency_tensor.setter
+    def adjacency_tensor(self, adj):
+        self._adj = adj
+
     def __hash__(self):
         return int.from_bytes(self.guid, "big")
-
-
-
-
-

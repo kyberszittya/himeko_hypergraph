@@ -4,6 +4,9 @@ import abc
 # Interface for compositable elements
 # such as edges and vertices
 class IComposable(abc.ABC):
+    """
+    Interface for composable elements e.g. edges and vertices
+    """
 
     @abc.abstractmethod
     def add_element(self, element):

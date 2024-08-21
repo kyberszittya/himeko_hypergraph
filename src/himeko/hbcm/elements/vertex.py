@@ -3,6 +3,7 @@ import typing
 
 from himeko.hbcm.elements.element import HypergraphElement
 from himeko.hbcm.elements.interfaces.base_interfaces import IComposable
+from himeko.hbcm.elements.interfaces.transformation_interfaces import ITensorTransformation
 from himeko.hbcm.exceptions.basic_exceptions import InvalidParentException
 
 
@@ -27,6 +28,8 @@ class HyperVertex(HypergraphElement, IComposable):
         # Setup degree attributes
         self._degree_in = 0
         self._degree_out = 0
+        # Edge order
+        self._edge_order = []
         # Adding logger element (ya rly)
         self._logger = logging.getLogger(f"{self.label}")
 
@@ -56,8 +59,20 @@ class HyperVertex(HypergraphElement, IComposable):
         self._degree_out -= 1
 
     @property
+    def children_permutation_sequence_nodes(self):
+        return filter(lambda x: isinstance(x, HyperVertex), self.children_permutation_sequence)
+
+    @property
     def degree(self):
         return self._degree_in + self._degree_out
+
+    @property
+    def edge_order(self):
+        if len(self._edge_order) == 0:
+            self._edge_order = list(
+                self.get_children(lambda x: isinstance(x, ITensorTransformation), None))
+            self._edge_order.sort(key=lambda x: x.guid)
+        return self._edge_order
 
     def __iadd__(self, other):
         if isinstance(other, typing.Iterable):

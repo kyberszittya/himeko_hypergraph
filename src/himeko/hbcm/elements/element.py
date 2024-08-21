@@ -197,21 +197,38 @@ class HypergraphElement(HypergraphMetaElement):
             self._element_permutation[s] = i
             self._permutation_element[i] = s
 
+    def __element_count_changed(self) -> bool:
+        """
+        Check if element sequence have been changed by comparing length of the element sequence
+        to the number of composite elements
+        Also brevity check for none element sequence
+        :return:
+        """
+        if self._element_sequence is None or (self.count_composite_elements != len(self._element_sequence)):
+            return True
+        return False
+
     @property
     def permutation_sequence(self):
-        if self._element_sequence is None:
+        if self.__element_count_changed():
             self.__generate_permuations()
         return self._element_sequence
 
     @property
+    def children_permutation_sequence(self):
+        if self.__element_count_changed():
+            self.__generate_permuations()
+        return self._element_sequence[:-1]
+
+    @property
     def element_permutation(self):
-        if self._element_sequence is None:
+        if self.__element_count_changed():
             self.__generate_permuations()
         return self._element_permutation
 
     @property
     def permutation_element(self):
-        if self._element_sequence is None:
+        if self.__element_count_changed():
             self.__generate_permuations()
         return self._permutation_element
 
