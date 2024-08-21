@@ -61,9 +61,13 @@ class StarExpansionTransformation(metaclass=AbstractHypergraphTensorTransformati
             e: HyperEdge
             adj = np.zeros((n, n))
             for x in e.permutation_tuples():
+                # Add edge outgoing from util node
                 i = perm[x[0]]
-                j = perm[e]
-                adj[i, j] = float(x[2])
+                e_j = perm[e]
+                adj[i, e_j] = float(x[2])
+                # Outgoing edge
+                j = perm[x[1]]
+                adj[e_j, j] = float(x[2])
             e.adjacency_tensor = adj
             tensor[ei] = adj
         return tensor, n, n_e
