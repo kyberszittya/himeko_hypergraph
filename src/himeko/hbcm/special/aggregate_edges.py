@@ -1,9 +1,9 @@
 import time
 import typing
 
-from himeko_hypergraph.src.elements.edge import ExecutableHyperEdge, HypergraphRelation
-from himeko_hypergraph.src.elements.vertex import HyperVertex
-from himeko_hypergraph.src.factories.creation_elements import FactoryHypergraphElements
+from himeko.hbcm.elements.edge import ExecutableHyperEdge, HypergraphRelation
+from himeko.hbcm.elements.vertex import HyperVertex
+from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
 
 
 class CombineEdgeMaxValues(ExecutableHyperEdge):

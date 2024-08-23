@@ -1,4 +1,4 @@
-from himeko_hypergraph.src.factories.creation_elements import FactoryHypergraphElements, create_default_vertex_guid
+from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements, create_default_vertex_guid
 
 
 def test_vertex_creation():
