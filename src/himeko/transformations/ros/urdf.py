@@ -19,8 +19,8 @@ class TransformationUrdf(ExecutableHyperEdge):
         self._named_attr["kinematics_meta"] = kinematics_meta
         self.robot_root_xml = etree.Element("robot")
 
-
-    def __generate_geometry(self, geometry, *args):
+    @staticmethod
+    def __generate_geometry(geometry, *args):
         _box, _cylinder, _sphere = args
         # Create geometry element
         geometry_xml = etree.Element("geometry")
@@ -77,8 +77,6 @@ class TransformationUrdf(ExecutableHyperEdge):
             iyy = ixx
             izz = ixx
         return ixx, iyy, izz, ixz, ixy, iyz
-
-
 
     def __add_links(self, root):
         # Geometry
@@ -159,7 +157,8 @@ class TransformationUrdf(ExecutableHyperEdge):
             collision_geom = self.__generate_geometry(_collision, *geometries)
             collision_xml.append(collision_geom)
 
-    def __add_axis(self, j, axis_element):
+    @staticmethod
+    def __add_axis(j, axis_element):
         axis_val = [0] * 3
         axis_xml = etree.Element("axis")
         for ax in filter(lambda x: axis_element in x.target.stereotype, j.out_relations()):
@@ -178,7 +177,6 @@ class TransformationUrdf(ExecutableHyperEdge):
             return np.deg2rad(angles)
         else:
             raise ValueError("Unknown angle")
-
 
     def __add_joints(self, root):
         # Elements
