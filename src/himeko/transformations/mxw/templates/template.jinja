@@ -1,16 +1,47 @@
 {%- macro render_node(node) -%}
-    <ul>
-        {%- for key, value in node.items() recursive %}
-            <li>
-                {{ key }}
-                {%- if value is mapping -%}
-                    {{ render_node(value) }}
-                {%- else -%}
-                    {{ value }}
+    <node {...{id: "{{ node.name }}"} }
+        {%- if node.position is not none  -%}
+        position={ {
+            x: {{ node.position[0] }},
+            y: {{ node.position[1] }},
+            z: {{ node.position[2] }}
+        } }
+        {%- endif -%}
+        {%- if node.orientation is not none  -%}
+        orientation={ {
+            x: {{ node.orientation[0] }},
+            y: {{ node.orientation[1] }},
+            z: {{ node.orientation[2] }},
+            w: {{ node.orientation[3] }}
+        } }
+        {%- endif -%}
+        {%- if node.scale is not none  -%}
+        scale={ {
+            x: {{ node.scale[0] }},
+            y: {{ node.scale[1] }},
+            z: {{ node.scale[2] }}
+        } }
+        {%- endif -%}
+        >
+            {%- if node.mesh is not none -%}
+                <mesh {...{url: "{{ node.mesh["url"] }}"}}
+                physical={ { raycast: true, collision: true, 'link-type': 'kinematic' } }
+                autophysical={true}
+                {%- if "scale" in node.mesh -%}
+                scale={ {
+                    x: {{ node.mesh["scale"][0] }},
+                    y: {{ node.mesh["scale"][1] }},
+                    z: {{ node.mesh["scale"][2] }}
+                } }
                 {%- endif -%}
-            </li>
+                />
+            {%- endif -%}
+        {%- for key, value in node.children.items() recursive %}
+        {{ render_node(value) }}
         {%- endfor %}
-    </ul>
+    </node>
 {%- endmacro -%}
 
-{{ render_node(tree) }}
+<root>
+    {{ render_node(tree) }}
+</root>
