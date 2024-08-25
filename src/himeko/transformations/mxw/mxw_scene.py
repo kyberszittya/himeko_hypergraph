@@ -1,7 +1,12 @@
+import os
+
+from jinja2 import Environment, FileSystemLoader
+
 from himeko.hbcm.elements.element import HypergraphElement
 from himeko.hbcm.elements.executable.edge import ExecutableHyperEdge
 from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
 from himeko.hbcm.queries.composition import QueryIsStereotypeOperation
+
 
 
 class TransformationMxw(ExecutableHyperEdge):
@@ -17,11 +22,39 @@ class TransformationMxw(ExecutableHyperEdge):
             raise ValueError("MaxWhere kinematics meta not set")
         root = args[0]
         mxw_node = self["mxw_meta"]["elements"]["mxw_node"]
-        op_joint = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
+        self.op_mxw_node = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
             QueryIsStereotypeOperation, "mxw_node_stereotype", 0,
             stereotype=mxw_node
         )
-        res_node = op_joint(root, depth=1)
-        for r in res_node:
-            print(r)
-            print(r.name)
+        res_node = self.op_mxw_node(root, depth=1)
+        tree = {
+            'root': {
+                'child1': {
+                    'grandchild1': {},
+                    'grandchild2': {}
+                },
+                'child2': {
+                    'grandchild3': {},
+                    'grandchild4': {
+                        'greatgrandchild1': {}
+                    }
+                }
+            }
+        }
+        print(os.getcwd())
+        template_path = (os.path.join(os.path.dirname(__file__), 'templates'))
+
+        # Inicializáljuk a Jinja2 környezetet
+        env = Environment(loader=FileSystemLoader(template_path))
+
+        template = env.get_template('template.jinja')
+        # Definiáljuk a kontextust
+        context = {
+            'tree': tree
+        }
+
+        # Rendereljük a sablont
+        rendered_html = template.render(context)
+        print(rendered_html)
+
+
