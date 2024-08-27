@@ -1,3 +1,4 @@
+from himeko.hbcm.elements.edge import HyperEdge
 from himeko.hbcm.elements.element import HypergraphElement
 from himeko.hbcm.elements.vertex import HyperVertex
 from himeko.hbcm.graph.prufer_sequence import generate_naive_prufer
@@ -12,14 +13,21 @@ def copy_node_list(node_list):
     copy_node = []
     for n in node_list:
         n: HypergraphElement
-        copy_node.append((n.name, n.guid, n.serial, n.timestamp, n.label, n.suid))
+        if isinstance(n, HyperVertex):
+            copy_node.append((n.name, n.guid, n.serial, n.timestamp, n.label, n.suid, "NODE"))
+        elif isinstance(n, HyperEdge):
+            copy_node.append((n.name, n.guid, n.serial, n.timestamp, n.label, n.suid, "EDGE"))
 
     # Copy tree nodes
     copy_node_map = {}
     list_copy_node = []
     # Reconstruct tree
     for t in copy_node:
-        n = HyperVertex(t[0], t[3], t[2], t[1], t[5], t[4])
+        n = None
+        if t[-1] == "NODE":
+            n = HyperVertex(t[0], t[3], t[2], t[1], t[5], t[4])
+        elif t[-1] == "EDGE":
+            n = HyperEdge(t[0], t[3], t[2], t[1], t[5], t[4])
         list_copy_node.append(n)
         copy_node_map[t[1]] = n
     return copy_node, list_copy_node, copy_node_map

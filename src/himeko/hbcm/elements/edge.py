@@ -97,7 +97,7 @@ def relation_name_default(e0: HypergraphElement, v0: HyperVertex, r: EnumRelatio
 class HyperEdge(HypergraphElement, ITensorTransformation):
 
     def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
-                 parent: typing.Optional[HypergraphElement]) -> None:
+                 parent: typing.Optional[HypergraphElement]=None) -> None:
         super().__init__(name, timestamp, serial, guid, suid, label, parent)
         # Parent
         if parent is not None:

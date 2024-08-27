@@ -197,6 +197,12 @@ class HypergraphElement(HypergraphMetaElement):
             self._element_permutation[s] = i
             self._permutation_element[i] = s
 
+    @property
+    def prufer_code(self):
+        if self.__element_count_changed():
+            self.__generate_permuations()
+        return self._prufer_code
+
     def __element_count_changed(self) -> bool:
         """
         Check if element sequence have been changed by comparing length of the element sequence

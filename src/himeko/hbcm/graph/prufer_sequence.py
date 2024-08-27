@@ -98,6 +98,7 @@ def reconstruct_naive_prufer(code, node_guids: typing.List[bytes], node_dict: ty
     Reconstruct tree from Prüfer-like code
     :param code: Prüfer sequence
     :param node_guids: Nodes (GUIDS)
+    :param node_dict: Node-element dictionary
     :return:
     """
     # Create permutation

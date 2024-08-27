@@ -1,20 +1,9 @@
-import abc
-
-from himeko.hbcm.elements.edge import HyperEdge
+from himeko.hbcm.elements.edge import HyperEdge, EnumRelationDirection
 from himeko.hbcm.elements.vertex import HyperVertex
 
 import numpy as np
 
-
-class AbstractHypergraphTensorTransformation(abc.ABCMeta):
-
-    @abc.abstractmethod
-    def dimensions(self, n: HyperVertex, **kwargs):
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def encode(self, n: HyperVertex, **kwargs):
-        raise NotImplementedError
+from himeko.hbcm.mapping.meta.tensor_mapping import AbstractHypergraphTensorTransformation, HypergraphTensor
 
 
 class BijectiveCliqueExpansionTransformation(metaclass=AbstractHypergraphTensorTransformation):
@@ -41,6 +30,20 @@ class BijectiveCliqueExpansionTransformation(metaclass=AbstractHypergraphTensorT
             e.adjacency_tensor = adj
             tensor[ei] = adj
         return tensor, n, n_e
+
+    def decode(self, msg: HypergraphTensor):
+        # Clique expansion
+        for i, e in enumerate(msg.edge_order):
+            e: HyperEdge
+            edge_sets = set()
+            nonzeros = np.argwhere(msg.tensor[i])
+            for x,y in nonzeros:
+                edge_sets.add((x, y, msg.tensor[i, x, y]))
+            for x, y, v in edge_sets:
+                e.associate_vertex((msg.node_sequence[y], EnumRelationDirection.OUT, v))
+                e.associate_vertex((msg.node_sequence[x], EnumRelationDirection.IN, v))
+
+
 
 
 class StarExpansionTransformation(metaclass=AbstractHypergraphTensorTransformation):
@@ -71,3 +74,10 @@ class StarExpansionTransformation(metaclass=AbstractHypergraphTensorTransformati
             e.adjacency_tensor = adj
             tensor[ei] = adj
         return tensor, n, n_e
+
+    def decode(self, n:  HypergraphTensor):
+        # Decode hypergraph from tensor
+        # Check if clique or star expansion is used (based on the dimension of the tensor)
+        for i, e in enumerate(n.edge_order):
+            e: HyperEdge
+            print(np.nonzero(n.tensor[i]))
