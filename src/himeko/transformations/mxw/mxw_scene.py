@@ -90,7 +90,6 @@ class TransformationMxw(ExecutableHyperEdge):
                 nmxw.mesh["scale"] = r["mesh"]["scale"].value
         return nmxw
 
-
     def __mxw_node_process(self, node: MxwNode, n: HypergraphElement):
         if n.count_composite_elements != 0:
             res_node = self.op_mxw_node(n, depth=1)
@@ -98,9 +97,6 @@ class TransformationMxw(ExecutableHyperEdge):
                 nmxw = self.__create_mxw_node(r)
                 node.children[r.name] = nmxw
                 self.__mxw_node_process(nmxw, r)
-
-
-
 
     def operate(self, *args, **kwargs):
         if self._named_attr["mxw_meta"] is None:
@@ -120,19 +116,17 @@ class TransformationMxw(ExecutableHyperEdge):
         print(os.getcwd())
         template_path = (os.path.join(os.path.dirname(__file__), 'templates'))
 
-        # Inicializáljuk a Jinja2 környezetet
+        # Initialize Jinja2 environment
         env = Environment(loader=FileSystemLoader(template_path))
 
         template = env.get_template('template.jinja')
-        # Definiáljuk a kontextust
+        # define context to substitute in the template
         context = {
             'tree': tree
         }
 
-        # Rendereljük a sablont
+        # Render template
         rendered_html = template.render(context)
-        print(rendered_html)
-        with open(f"{root.name}.jsx", "w") as f:
-            f.write(rendered_html)
+        return rendered_html
 
 
