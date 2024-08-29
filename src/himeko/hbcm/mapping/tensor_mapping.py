@@ -44,8 +44,6 @@ class BijectiveCliqueExpansionTransformation(metaclass=AbstractHypergraphTensorT
                 e.associate_vertex((msg.node_sequence[x], EnumRelationDirection.IN, v))
 
 
-
-
 class StarExpansionTransformation(metaclass=AbstractHypergraphTensorTransformation):
 
     def __init__(self):
@@ -75,9 +73,19 @@ class StarExpansionTransformation(metaclass=AbstractHypergraphTensorTransformati
             tensor[ei] = adj
         return tensor, n, n_e
 
-    def decode(self, n:  HypergraphTensor):
+    def decode(self, msg:  HypergraphTensor):
         # Decode hypergraph from tensor
         # Check if clique or star expansion is used (based on the dimension of the tensor)
-        for i, e in enumerate(n.edge_order):
+        for i, e in enumerate(msg.edge_order):
             e: HyperEdge
-            print(np.nonzero(n.tensor[i]))
+            index_edge = msg.node_sequence.index(e)
+            edge_sets = set()
+            nonzeros = np.argwhere(msg.tensor[i])
+            for x, y in nonzeros:
+                edge_sets.add((i, x, y, msg.tensor[i, x, y]))
+            for _, x, y, v in edge_sets:
+                if x == index_edge:
+                    e.associate_vertex((msg.node_sequence[y], EnumRelationDirection.OUT, v))
+                elif y == index_edge:
+                    e.associate_vertex((msg.node_sequence[x], EnumRelationDirection.IN, v))
+
