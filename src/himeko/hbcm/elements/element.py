@@ -101,11 +101,11 @@ class HypergraphMetaElement(abc.ABC):
         self._stereotype = StereotypeDefinition()
 
     @property
-    def stereotype(self):
+    def stereotype(self) -> StereotypeDefinition:
         return self._stereotype
 
     @stereotype.setter
-    def stereotype(self, v):
+    def stereotype(self, v: StereotypeDefinition):
         self._stereotype += v
 
     def add_stereotype(self, v):
