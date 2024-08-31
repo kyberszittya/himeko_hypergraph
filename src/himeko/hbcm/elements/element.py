@@ -78,7 +78,6 @@ class StereotypeDefinition(abc.ABC):
         return self._stereotype
 
 
-
 class HypergraphMetaElement(abc.ABC):
 
     def __init__(self, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
@@ -354,3 +353,18 @@ class HypergraphElement(HypergraphMetaElement):
             return None
         return self.get_parent().get_children(f, 1)
 
+
+def common_ancestor(a: HypergraphElement, b: HypergraphElement):
+    if a is b:
+        return a
+    if a.parent is b:
+        return b
+    if b.parent is a:
+        return a
+    if a.parent is b.parent:
+        return a.parent
+    if a.parent is None or b.parent is None:
+        return None
+    if a.parent is not b.parent:
+        return common_ancestor(a.parent, b.parent)
+    return None
