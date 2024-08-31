@@ -93,8 +93,8 @@ def relation_label_default(e0: HypergraphElement, v0: HyperVertex, r: EnumRelati
 def relation_name_default(e0: HypergraphElement, v0: HyperVertex, r: EnumRelationDirection):
     return f"{e0.name}{str(r)}{v0.label}"
 
-# TODO: Check if adding IComposable interface works anyway
-class HyperEdge(HypergraphElement, ITensorTransformation):
+
+class HyperEdge(HypergraphElement, ITensorTransformation, IComposable):
 
     def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
                  parent: typing.Optional[HypergraphElement]=None) -> None:
