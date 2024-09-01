@@ -7,6 +7,26 @@ from himeko.hbcm.elements.interfaces.transformation_interfaces import ITensorTra
 from himeko.hbcm.exceptions.basic_exceptions import InvalidParentException
 
 
+class Metadata(object):
+
+    def __init__(self, filename: str):
+        self._filename = filename
+        self.imports = []
+
+    def add_import(self, alias: str):
+        self.imports.append(alias)
+
+    def remove_import(self, name: str):
+        self.imports.remove(name)
+
+    def all_imports(self):
+        return [x for x in self.imports]
+
+    @property
+    def filename(self):
+        return self._filename
+
+
 class HyperVertex(HypergraphElement, IComposable):
 
     def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
@@ -32,6 +52,8 @@ class HyperVertex(HypergraphElement, IComposable):
         self._edge_order = []
         # Adding logger element (ya rly)
         self._logger = logging.getLogger(f"{self.label}")
+        # Meta element
+        self._meta = None
 
 
     @property
@@ -110,3 +132,10 @@ class HyperVertex(HypergraphElement, IComposable):
                                     x is not self and
                                     isinstance(x, HyperVertex) and
                                     condition(x), depth)
+
+    def add_meta(self, meta: Metadata):
+        self._meta = meta
+
+    @property
+    def meta(self):
+        return self._meta
