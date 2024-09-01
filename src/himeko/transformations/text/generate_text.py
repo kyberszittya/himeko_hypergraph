@@ -23,7 +23,10 @@ def generate_reference_text(referer: HypergraphElement, reference: HypergraphEle
 
 
 def generate_signature_text(root: HypergraphElement):
-    sig = f"{root.name}"
+    sig = ""
+    if isinstance(root, HyperEdge):
+        sig += "@"
+    sig += f"{root.name}"
     if len(root.stereotype) > 0:
         sig += ":"
         for st in root.stereotype:
@@ -38,14 +41,20 @@ def generate_edge_body_text(edge: HyperEdge, indent=0):
     return text
 
 
-def generate_text(root: HypergraphElement, indent=0, indent_step=2):
+def generate_meta_element(root: HyperVertex, indent_step=2):
     text = ""
     if isinstance(root, HyperVertex):
         if root.meta is not None:
-            text = f"[ {root.meta.filename}\n"
+            text += f"[ {root.meta.filename}\n"
             for imp in root.meta.imports:
-                text += " " * indent_step + f"import {imp}\n"
+                text += " " * indent_step + f"import \"{imp}\"\n"
             text += "]\n"
+    return text
+
+
+def generate_text(root: HypergraphElement, indent=0, indent_step=2):
+    text = ""
+    text += generate_meta_element(root, indent_step)
     text += " " * indent + generate_signature_text(root)
     if isinstance(root, HyperEdge):
         text += generate_edge_body_text(root, indent=indent + indent_step)
