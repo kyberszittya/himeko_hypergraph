@@ -1,4 +1,5 @@
-from himeko.hbcm.elements.edge import HyperEdge
+from himeko.hbcm.elements.attribute import HypergraphAttribute
+from himeko.hbcm.elements.edge import HyperEdge, HypergraphRelation
 from himeko.hbcm.elements.element import HypergraphElement, common_ancestor
 from himeko.hbcm.elements.interfaces.base_interfaces import IComposable
 from himeko.hbcm.elements.vertex import HyperVertex
@@ -34,10 +35,17 @@ def generate_signature_text(root: HypergraphElement):
     return sig + " {\n"
 
 
+def generate_relation_text(edge: HyperEdge, r: HypergraphRelation):
+    if r.value == 1.0:
+        return f"{r.direction} {generate_reference_text(edge, r.target)}, "
+    else:
+        return f"{r.value} {r.direction} {generate_reference_text(edge, r.target)}, "
+
+
 def generate_edge_body_text(edge: HyperEdge, indent=0):
     text = ""
     for r in edge.all_relations():
-        text += " " * indent + f"{r.direction} {generate_reference_text(edge, r.target)}, \n"
+        text += " " * indent + generate_relation_text(edge, r) +"\n"
     return text
 
 
@@ -60,7 +68,10 @@ def generate_text(root: HypergraphElement, indent=0, indent_step=2):
         text += generate_edge_body_text(root, indent=indent + indent_step)
         text = text[:-3]
         text += "\n"
-    for c in root.get_children(lambda x: True, 1):
+    for c in root.get_children(lambda x: isinstance(x, HypergraphAttribute), 1):
+        if isinstance(c, HypergraphAttribute):
+            text += " " * (indent + indent_step) + f"{c.name} {c.value}\n"
+    for c in root.get_children(lambda x: isinstance(x, IComposable), 1):
         if isinstance(c, IComposable) and isinstance(c, HypergraphElement):
             text += generate_text(c, indent + indent_step)
     text += indent * " " + "}\n"

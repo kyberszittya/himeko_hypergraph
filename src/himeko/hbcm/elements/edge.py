@@ -12,6 +12,12 @@ from himeko.hbcm.exceptions.basic_exceptions import InvalidHypergraphElementExce
     InvalidRelationDirection
 
 
+class EnumRelationModifier(Enum):
+    USE = 0
+    COPY = 1
+    EXTEND = 2
+
+
 class EnumRelationDirection(Enum):
     UNDEFINED = 0
     IN = 1
@@ -33,6 +39,11 @@ class EnumRelationDirection(Enum):
 @dataclass
 class ReferenceQuery(object):
     reference_query: str
+    modifier: EnumRelationModifier
+
+    def __init__(self, reference_query: str, modifier: EnumRelationModifier=EnumRelationModifier.USE):
+        self.reference_query = reference_query
+        self.modifier = modifier
 
 
 class HypergraphRelation(HypergraphMetaElement):
