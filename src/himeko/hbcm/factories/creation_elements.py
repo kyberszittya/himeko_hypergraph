@@ -127,7 +127,7 @@ class FactoryHypergraphElements(object):
         return v0
 
     @classmethod
-    def create_edge_default(cls, name: str, timestamp: int, parent: HyperVertex):
+    def create_edge_default(cls, name: str, timestamp: int, parent: HyperVertex) -> HyperEdge:
         serial = len(parent)
         label = create_default_edge_label(name, timestamp, serial, parent)
         guid = create_default_edge_guid(name, timestamp, serial, parent)
@@ -136,7 +136,8 @@ class FactoryHypergraphElements(object):
         return e0
 
     @classmethod
-    def create_vertex_constructor_default(cls, t, name: str, timestamp: int, parent: typing.Optional[HyperVertex] = None):
+    def create_vertex_constructor_default(cls, t, name: str, timestamp: int,
+                                          parent: typing.Optional[HyperVertex] = None) -> HyperVertex:
         label, serial, guid, suid = cls.create_default_attributes(name, timestamp, parent)
         v0 = t(name, timestamp, serial, guid, suid, label, parent)
         return v0
@@ -156,7 +157,7 @@ class FactoryHypergraphElements(object):
         return a0
 
     @classmethod
-    def create_edge_constructor_default(cls, t, name: str, timestamp: int, parent: HyperVertex, **kwargs):
+    def create_edge_constructor_default(cls, t, name: str, timestamp: int, parent: HyperVertex, **kwargs) -> HyperEdge:
         serial = len(parent)
         label = create_default_edge_label(name, timestamp, serial, parent)
         guid = create_default_edge_guid(name, timestamp, serial, parent)
