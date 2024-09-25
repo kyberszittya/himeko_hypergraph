@@ -28,7 +28,7 @@ class TransformationUrdf(ExecutableHyperEdge):
         if _cylinder in geometry.value.stereotype:
             # Add cylinder
             cylinder_xml = etree.Element("cylinder")
-            length, radius = geometry.value["dimension"].value
+            radius, length = geometry.value["dimension"].value
             cylinder_xml.set("length", str(length))
             cylinder_xml.set("radius", str(radius))
             # Add to geometry
@@ -38,7 +38,7 @@ class TransformationUrdf(ExecutableHyperEdge):
             box_xml = etree.Element("box")
             size = geometry.value["dimension"].value
             box_xml.set("size", " ".join([str(s) for s in size]))
-            # Add to geoemtry
+            # Add to geometry
             geometry_xml.append(box_xml)
         elif _sphere in geometry.value.stereotype:
             # Add sphere
@@ -107,6 +107,12 @@ class TransformationUrdf(ExecutableHyperEdge):
             mass_xml = etree.Element("mass")
             mass_xml.set("value", str(link["mass"].value))
             inertial_xml.append(mass_xml)
+            # Check if origin is present
+            root_origin = None
+            if "origin" in link:
+                root_origin = link["origin"]
+                # Create root element
+                el_root_origin = self.__create_origin(root_origin)
             # Add inertia calculation
             if "inertia" not in link:
                 ixx, iyy, izz, ixz, ixy, iyz = self.calc_inertia(
@@ -124,6 +130,8 @@ class TransformationUrdf(ExecutableHyperEdge):
             inertia_xml.set("ixy", str(ixy))
             inertia_xml.set("iyz", str(iyz))
             inertial_xml.append(inertia_xml)
+            if root_origin is not None:
+                inertia_xml.append(el_root_origin)
             # Geometry
             _visual = link["visual"]
             # Create visual element
@@ -178,6 +186,20 @@ class TransformationUrdf(ExecutableHyperEdge):
         else:
             raise ValueError("Unknown angle")
 
+    def __create_origin(self, value):
+        # Add origin
+        origin_xml = etree.Element("origin")
+        # Get pose
+        pose = np.array(value)
+        if pose.ndim == 1:
+            pos = pose[:3]
+            origin_xml.set("xyz", " ".join([str(p) for p in pos]))
+        elif len(value) == 2:
+            pos, rpy = pose[0], self.__convert_angles(pose[1])
+            origin_xml.set("xyz", " ".join([str(p) for p in pos]))
+            origin_xml.set("rpy", " ".join([str(r) for r in rpy]))
+        return origin_xml
+
     def __add_joints(self, root):
         # Elements
         # Geometric elements
@@ -211,17 +233,7 @@ class TransformationUrdf(ExecutableHyperEdge):
                 child_xml = etree.Element("child")
                 child_xml.set("link", child.target.name)
                 joint_xml.append(child_xml)
-                # Add origin
-                origin_xml = etree.Element("origin")
-                # Get pose
-                pose = np.array(child.value)
-                if pose.ndim == 1:
-                    pos = pose[:3]
-                    origin_xml.set("xyz", " ".join([str(p) for p in pos]))
-                elif len(child.value) == 2:
-                    pos, rpy = pose[0], self.__convert_angles(pose[1])
-                    origin_xml.set("xyz", " ".join([str(p) for p in pos]))
-                    origin_xml.set("rpy", " ".join([str(r) for r in rpy]))
+                origin_xml = self.__create_origin(child.value)
                 joint_xml.append(origin_xml)
                 # Add axis
                 axis_xml = self.__add_axis(j, axis_element)
