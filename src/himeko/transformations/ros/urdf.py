@@ -142,6 +142,8 @@ class TransformationUrdf(ExecutableHyperEdge):
             visual_geom = self.__generate_geometry(_visual, *geometries)
             # Wrap up
             visual_xml.append(visual_geom)
+            if root_origin is not None:
+                visual_xml.append(el_root_origin)
             # Color
             _color_element = link["color"]
             if isinstance(_color_element.value, HyperVertex) or isinstance(_color_element.value, HypergraphAttribute):
@@ -164,6 +166,8 @@ class TransformationUrdf(ExecutableHyperEdge):
             # Add geometry to collision
             collision_geom = self.__generate_geometry(_collision, *geometries)
             collision_xml.append(collision_geom)
+            if root_origin is not None:
+                collision_xml.append(el_root_origin)
 
     @staticmethod
     def __add_axis(j, axis_element):
@@ -189,15 +193,18 @@ class TransformationUrdf(ExecutableHyperEdge):
     def __create_origin(self, value):
         # Add origin
         origin_xml = etree.Element("origin")
-        # Get pose
-        pose = np.array(value)
-        if pose.ndim == 1:
-            pos = pose[:3]
-            origin_xml.set("xyz", " ".join([str(p) for p in pos]))
-        elif len(value) == 2:
-            pos, rpy = pose[0], self.__convert_angles(pose[1])
-            origin_xml.set("xyz", " ".join([str(p) for p in pos]))
-            origin_xml.set("rpy", " ".join([str(r) for r in rpy]))
+        if isinstance(value, HypergraphAttribute):
+            origin_xml.set("xyz", " ".join([str(p) for p in value.value]))
+        else:
+            # Get pose
+            pose = np.array(value)
+            if pose.ndim == 1:
+                pos = pose[:3]
+                origin_xml.set("xyz", " ".join([str(p) for p in pos]))
+            elif len(value) == 2:
+                pos, rpy = pose[0], self.__convert_angles(pose[1])
+                origin_xml.set("xyz", " ".join([str(p) for p in pos]))
+                origin_xml.set("rpy", " ".join([str(r) for r in rpy]))
         return origin_xml
 
     def __add_joints(self, root):
