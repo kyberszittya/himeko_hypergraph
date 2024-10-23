@@ -126,6 +126,9 @@ class HypergraphMetaElement(abc.ABC):
     def suid(self):
         return self.__suid
 
+    """
+    Parent in the compositional tree.
+    """
     @property
     def parent(self):
         return self._parent
@@ -357,14 +360,15 @@ class HypergraphElement(HypergraphMetaElement):
 def common_ancestor(a: HypergraphElement, b: HypergraphElement):
     if a is b:
         return a
-    if a.parent is b:
+    elif a.parent is b:
         return b
-    if b.parent is a:
+    elif b.parent is a:
         return a
-    if a.parent is b.parent:
+    elif a.parent is b.parent:
         return a.parent
-    if a.parent is None or b.parent is None:
+    elif a.parent is None or b.parent is None:
         return None
-    if a.parent is not b.parent:
+    elif a.parent is not b.parent:
         return common_ancestor(a.parent, b.parent)
-    return None
+    else:
+        return None
