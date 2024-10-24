@@ -12,13 +12,13 @@ from himeko.hbcm.exceptions.basic_exceptions import InvalidHypergraphElementExce
     InvalidRelationDirection
 
 
-class EnumRelationModifier(Enum):
+class EnumHyperarcModifier(Enum):
     USE = 0
     COPY = 1
     EXTEND = 2
 
 
-class EnumRelationDirection(Enum):
+class EnumHyperarcDirection(Enum):
     UNDEFINED = 0
     IN = 1
     OUT = 2
@@ -26,11 +26,11 @@ class EnumRelationDirection(Enum):
 
     def __str__(self):
         match(self):
-            case EnumRelationDirection.UNDEFINED:
+            case EnumHyperarcDirection.UNDEFINED:
                 return "--"
-            case EnumRelationDirection.IN:
+            case EnumHyperarcDirection.IN:
                 return "<-"
-            case EnumRelationDirection.OUT:
+            case EnumHyperarcDirection.OUT:
                 return "->"
             case _:
                 raise InvalidRelationDirection("Invalid direction is provided during relation creation")
@@ -39,17 +39,17 @@ class EnumRelationDirection(Enum):
 @dataclass
 class ReferenceQuery(object):
     reference_query: str
-    modifier: EnumRelationModifier
+    modifier: EnumHyperarcModifier
 
-    def __init__(self, reference_query: str, modifier: EnumRelationModifier=EnumRelationModifier.USE):
+    def __init__(self, reference_query: str, modifier: EnumHyperarcModifier=EnumHyperarcModifier.USE):
         self.reference_query = reference_query
         self.modifier = modifier
 
 
-class HypergraphRelation(HypergraphMetaElement):
+class Hyperarc(HypergraphMetaElement):
 
     def __init__(self, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str, value,
-                 parent: HypergraphElement, target: HypergraphElement, direction: EnumRelationDirection):
+                 parent: HypergraphElement, target: HypergraphElement, direction: EnumHyperarcDirection):
         super().__init__(timestamp, serial, guid, suid, label, parent)
         self.__value = value
         self.__target = target
@@ -69,7 +69,7 @@ class HypergraphRelation(HypergraphMetaElement):
         return self.__dir
 
     @direction.setter
-    def direction(self, direction: EnumRelationDirection):
+    def direction(self, direction: EnumHyperarcDirection):
         self.__dir = direction
 
     @property
@@ -77,10 +77,10 @@ class HypergraphRelation(HypergraphMetaElement):
         return self.__target
 
     def is_out(self):
-        return self.__dir == EnumRelationDirection.UNDEFINED or self.__dir == EnumRelationDirection.OUT
+        return self.__dir == EnumHyperarcDirection.UNDEFINED or self.__dir == EnumHyperarcDirection.OUT
 
     def is_in(self):
-        return self.__dir == EnumRelationDirection.UNDEFINED or self.__dir == EnumRelationDirection.IN
+        return self.__dir == EnumHyperarcDirection.UNDEFINED or self.__dir == EnumHyperarcDirection.IN
 
     # Overload functions
     def __iadd__(self, other):
@@ -97,11 +97,11 @@ class HypergraphRelation(HypergraphMetaElement):
 
 
 
-def relation_label_default(e0: HypergraphElement, v0: HyperVertex, r: EnumRelationDirection):
+def relation_label_default(e0: HypergraphElement, v0: HyperVertex, r: EnumHyperarcDirection):
     return f"{e0.label}{str(r)}{v0.label}"
 
 
-def relation_name_default(e0: HypergraphElement, v0: HyperVertex, r: EnumRelationDirection):
+def relation_name_default(e0: HypergraphElement, v0: HyperVertex, r: EnumHyperarcDirection):
     return f"{e0.name}{str(r)}{v0.label}"
 
 
@@ -115,9 +115,9 @@ class HyperEdge(HypergraphElement, ITensorTransformation, IComposable):
             parent: HyperVertex
             parent.add_element(self)
         # Relations
-        self.__relations: typing.Dict[bytes, HypergraphRelation] = {}
+        self.__relations: typing.Dict[bytes, Hyperarc] = {}
         # Vertex associations
-        self.__associations: typing.Dict[bytes, HypergraphRelation] = {}
+        self.__associations: typing.Dict[bytes, Hyperarc] = {}
         # Counts
         self.__cnt_in_relations = 0
         self.__cnt_out_relations = 0
@@ -129,7 +129,7 @@ class HyperEdge(HypergraphElement, ITensorTransformation, IComposable):
     def __create_default_relation_guid(self, label: str) -> bytes:
         return hashlib.sha384(label.encode('utf-8')).digest()
 
-    def associate_vertex(self, r: typing.Tuple[HyperVertex, EnumRelationDirection, float|typing.Iterable]):
+    def associate_vertex(self, r: typing.Tuple[HyperVertex, EnumHyperarcDirection, float | typing.Iterable]):
         v, d, _val = r
         if not isinstance(v, HypergraphElement):
             raise InvalidHypergraphElementException("Unable to add incompatible element to graph")
@@ -138,21 +138,21 @@ class HyperEdge(HypergraphElement, ITensorTransformation, IComposable):
         # TODO: SUID revamp
         suid = guid
         n_assoc = len(self.__associations.keys())
-        rel = HypergraphRelation(self.timestamp, n_assoc, guid, suid, __lbl, _val, self, v, d)
+        rel = Hyperarc(self.timestamp, n_assoc, guid, suid, __lbl, _val, self, v, d)
         self.__associations[guid] = rel
         # Increment relation number
         match d:
-            case EnumRelationDirection.IN:
+            case EnumHyperarcDirection.IN:
                 self.__cnt_in_relations += 1
                 # Increment degree (out)
                 if isinstance(v, IComposable):
                     v.inc_degree_out()
-            case EnumRelationDirection.OUT:
+            case EnumHyperarcDirection.OUT:
                 self.__cnt_out_relations += 1
                 # Increment degree (in)
                 if isinstance(v, IComposable):
                     v.inc_degree_in()
-            case EnumRelationDirection.UNDEFINED:
+            case EnumHyperarcDirection.UNDEFINED:
                 self.__cnt_out_relations += 1
                 self.__cnt_in_relations += 1
                 # Increment degree (both in and out)
@@ -165,7 +165,7 @@ class HyperEdge(HypergraphElement, ITensorTransformation, IComposable):
         if not isinstance(v, HypergraphElement):
             raise InvalidHypergraphElementException("Unable to remove incompatible element from graph")
 
-    def associate_edge(self, r: typing.Tuple[typing.Any, EnumRelationDirection, float|typing.Iterable]):
+    def associate_edge(self, r: typing.Tuple[typing.Any, EnumHyperarcDirection, float | typing.Iterable]):
         e, d, v = r
         if not isinstance(e, HyperEdge):
             raise InvalidHypergraphElementException("Unable to associate edge with incompatible element")
@@ -176,17 +176,17 @@ class HyperEdge(HypergraphElement, ITensorTransformation, IComposable):
             raise InvalidHypergraphElementException("Unable to check containment of incompatible element")
         return True
 
-    def all_relations(self) -> typing.Generator[HypergraphRelation, None, None]:
+    def all_relations(self) -> typing.Generator[Hyperarc, None, None]:
         for x in self.__associations.values():
             yield x
         for x in self.__relations.values():
             yield x
 
-    def out_relations(self) -> typing.Generator[HypergraphRelation, None, None]:
+    def out_relations(self) -> typing.Generator[Hyperarc, None, None]:
         for x in filter(lambda relx: relx.is_out(), self.all_relations()):
             yield x
 
-    def in_relations(self) -> typing.Generator[HypergraphRelation, None, None]:
+    def in_relations(self) -> typing.Generator[Hyperarc, None, None]:
         for x in filter(lambda relx: relx.is_in(), self.all_relations()):
             yield x
 

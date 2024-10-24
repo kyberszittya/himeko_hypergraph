@@ -1,4 +1,4 @@
-from himeko.hbcm.elements.edge import EnumRelationDirection
+from himeko.hbcm.elements.edge import EnumHyperarcDirection
 from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
 
 
@@ -12,8 +12,8 @@ def test_edge_creation():
         "v1", 0, vparent)
     e0 = FactoryHypergraphElements.create_edge_default(
         "e0", 0, vparent)
-    e0 += (v0, EnumRelationDirection.UNDEFINED, 10)
-    e0 += (v1, EnumRelationDirection.UNDEFINED, 20)
+    e0 += (v0, EnumHyperarcDirection.UNDEFINED, 10)
+    e0 += (v1, EnumHyperarcDirection.UNDEFINED, 20)
     assert e0.name == "e0"
     assert e0.label == "domain.0||e0.0.2"
     assert len(e0) == 2

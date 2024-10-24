@@ -1,6 +1,6 @@
 import typing
 
-from himeko.hbcm.elements.edge import HyperEdge, EnumRelationDirection
+from himeko.hbcm.elements.edge import HyperEdge, EnumHyperarcDirection
 from himeko.hbcm.elements.vertex import HyperVertex
 from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
 
@@ -10,9 +10,9 @@ def surjective_mapping(name: str, timestamp: int, inputs: typing.Iterable[HyperV
     e: HyperEdge = FactoryHypergraphElements.create_edge_default(name, timestamp, domain)
     # Inputs
     for i in inputs:
-        e.associate_vertex((i, EnumRelationDirection.IN, 1.0))
+        e.associate_vertex((i, EnumHyperarcDirection.IN, 1.0))
     # Output
-    e.associate_vertex((output, EnumRelationDirection.OUT, 1.0))
+    e.associate_vertex((output, EnumHyperarcDirection.OUT, 1.0))
     # Return new mapping
     return e
 
@@ -35,12 +35,12 @@ def surjective_constructor_mapping(
     # Inputs
     if input_values is None:
         for i in inputs:
-            e.associate_vertex((i, EnumRelationDirection.IN, 1.0))
+            e.associate_vertex((i, EnumHyperarcDirection.IN, 1.0))
     else:
         for k, i in enumerate(inputs):
-            e.associate_vertex((i, EnumRelationDirection.IN, input_values[k]))
+            e.associate_vertex((i, EnumHyperarcDirection.IN, input_values[k]))
     # Output
-    e.associate_vertex((output, EnumRelationDirection.OUT, 1.0))
+    e.associate_vertex((output, EnumHyperarcDirection.OUT, 1.0))
     # Return new mapping
     return e
 

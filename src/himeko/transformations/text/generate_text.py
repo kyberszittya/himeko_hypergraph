@@ -1,5 +1,5 @@
 from himeko.hbcm.elements.attribute import HypergraphAttribute
-from himeko.hbcm.elements.edge import HyperEdge, HypergraphRelation
+from himeko.hbcm.elements.edge import HyperEdge, Hyperarc
 from himeko.hbcm.elements.element import HypergraphElement, common_ancestor
 from himeko.hbcm.elements.interfaces.base_interfaces import IComposable
 from himeko.hbcm.elements.vertex import HyperVertex
@@ -35,7 +35,7 @@ def generate_signature_text(root: HypergraphElement):
     return sig + " {\n"
 
 
-def generate_relation_text(edge: HyperEdge, r: HypergraphRelation):
+def generate_relation_text(edge: HyperEdge, r: Hyperarc):
     if r.value == 1.0:
         return f"{r.direction} {generate_reference_text(edge, r.target)}, "
     else:

@@ -1,7 +1,9 @@
 import abc
 import typing
-from himeko.hbcm.elements.edge import ExecutableHyperEdge, EnumRelationDirection
-from himeko.hbcm.elements.vertex import ExecutableHyperVertex, HyperVertex
+
+from himeko.hbcm.elements.edge import EnumHyperarcDirection
+from himeko.hbcm.elements.executable.edge import ExecutableHyperEdge
+from himeko.hbcm.elements.executable.vertex import ExecutableHyperVertex, HyperVertex
 
 from collections import deque
 
@@ -43,7 +45,7 @@ class FlowVertex(MessageQueueVertex):
 
     def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
                  parent: typing.Optional = None, transform_func: typing.Optional[typing.Callable] = None,
-                 flow_direction: EnumRelationDirection = EnumRelationDirection.UNDEFINED):
+                 flow_direction: EnumHyperarcDirection = EnumHyperarcDirection.UNDEFINED):
         super().__init__(name, timestamp, serial, guid, suid, label, parent, transform_func)
         self._msg_queue = None
         self.__flow_direction = flow_direction
@@ -62,11 +64,11 @@ class FlowVertex(MessageQueueVertex):
 
     def _push_operation(self, *args, **kwargs):
         match self.__flow_direction:
-            case EnumRelationDirection.UNDEFINED:
+            case EnumHyperarcDirection.UNDEFINED:
                 return self._bidirectional_operation(*args, **kwargs)
-            case EnumRelationDirection.IN:
+            case EnumHyperarcDirection.IN:
                 return self._input_operation(*args, **kwargs)
-            case EnumRelationDirection.OUT:
+            case EnumHyperarcDirection.OUT:
                 return self._output_operation(*args, **kwargs)
 
     @property

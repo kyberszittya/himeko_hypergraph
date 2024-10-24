@@ -1,4 +1,4 @@
-from himeko.hbcm.elements.edge import HyperEdge, EnumRelationDirection
+from himeko.hbcm.elements.edge import HyperEdge, EnumHyperarcDirection
 from himeko.hbcm.elements.vertex import HyperVertex
 
 import numpy as np
@@ -40,8 +40,8 @@ class BijectiveCliqueExpansionTransformation(metaclass=AbstractHypergraphTensorT
             for x,y in nonzeros:
                 edge_sets.add((x, y, msg.tensor[i, x, y]))
             for x, y, v in edge_sets:
-                e.associate_vertex((msg.node_sequence[y], EnumRelationDirection.OUT, v))
-                e.associate_vertex((msg.node_sequence[x], EnumRelationDirection.IN, v))
+                e.associate_vertex((msg.node_sequence[y], EnumHyperarcDirection.OUT, v))
+                e.associate_vertex((msg.node_sequence[x], EnumHyperarcDirection.IN, v))
 
 
 class StarExpansionTransformation(metaclass=AbstractHypergraphTensorTransformation):
@@ -85,7 +85,7 @@ class StarExpansionTransformation(metaclass=AbstractHypergraphTensorTransformati
                 edge_sets.add((i, x, y, msg.tensor[i, x, y]))
             for _, x, y, v in edge_sets:
                 if x == index_edge:
-                    e.associate_vertex((msg.node_sequence[y], EnumRelationDirection.OUT, v))
+                    e.associate_vertex((msg.node_sequence[y], EnumHyperarcDirection.OUT, v))
                 elif y == index_edge:
-                    e.associate_vertex((msg.node_sequence[x], EnumRelationDirection.IN, v))
+                    e.associate_vertex((msg.node_sequence[x], EnumHyperarcDirection.IN, v))
 

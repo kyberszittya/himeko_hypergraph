@@ -1,4 +1,4 @@
-from himeko.hbcm.elements.edge import EnumRelationDirection
+from himeko.hbcm.elements.edge import EnumHyperarcDirection
 from himeko.hbcm.elements.vertex import HyperVertex
 from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
 
@@ -23,20 +23,20 @@ def test_sequence_generation():
             ename, 0, vparent)
         edge_dict[ename] = e
     # Edge 0
-    edge_dict["e0"] += (vertex_dict["v0"], EnumRelationDirection.UNDEFINED, 10)
-    edge_dict["e0"] += (vertex_dict["v3"], EnumRelationDirection.UNDEFINED, 10)
+    edge_dict["e0"] += (vertex_dict["v0"], EnumHyperarcDirection.UNDEFINED, 10)
+    edge_dict["e0"] += (vertex_dict["v3"], EnumHyperarcDirection.UNDEFINED, 10)
     # Edge 1
-    edge_dict["e1"] += (vertex_dict["v1"], EnumRelationDirection.UNDEFINED, 10)
-    edge_dict["e1"] += (vertex_dict["v3"], EnumRelationDirection.UNDEFINED, 10)
+    edge_dict["e1"] += (vertex_dict["v1"], EnumHyperarcDirection.UNDEFINED, 10)
+    edge_dict["e1"] += (vertex_dict["v3"], EnumHyperarcDirection.UNDEFINED, 10)
     # Edge 2
-    edge_dict["e2"] += (vertex_dict["v2"], EnumRelationDirection.UNDEFINED, 10)
-    edge_dict["e2"] += (vertex_dict["v3"], EnumRelationDirection.UNDEFINED, 10)
+    edge_dict["e2"] += (vertex_dict["v2"], EnumHyperarcDirection.UNDEFINED, 10)
+    edge_dict["e2"] += (vertex_dict["v3"], EnumHyperarcDirection.UNDEFINED, 10)
     # Edge 3
-    edge_dict["e3"] += (vertex_dict["v4"], EnumRelationDirection.UNDEFINED, 10)
-    edge_dict["e3"] += (vertex_dict["v3"], EnumRelationDirection.UNDEFINED, 10)
+    edge_dict["e3"] += (vertex_dict["v4"], EnumHyperarcDirection.UNDEFINED, 10)
+    edge_dict["e3"] += (vertex_dict["v3"], EnumHyperarcDirection.UNDEFINED, 10)
     # Edge 4
-    edge_dict["e4"] += (vertex_dict["v4"], EnumRelationDirection.UNDEFINED, 10)
-    edge_dict["e4"] += (vertex_dict["v5"], EnumRelationDirection.UNDEFINED, 10)
+    edge_dict["e4"] += (vertex_dict["v4"], EnumHyperarcDirection.UNDEFINED, 10)
+    edge_dict["e4"] += (vertex_dict["v5"], EnumHyperarcDirection.UNDEFINED, 10)
     # Draw network
     G = nx.Graph()
     G.add_nodes_from(vertex_dict.keys())

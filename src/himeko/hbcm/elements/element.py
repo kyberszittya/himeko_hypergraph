@@ -1,6 +1,7 @@
 import abc
 import typing
 from collections import deque
+from dataclasses import dataclass
 
 from himeko.hbcm.elements.interfaces.base_interfaces import IComposable
 from himeko.hbcm.exceptions.basic_exceptions import (InvalidHypergraphElementException,
@@ -78,6 +79,15 @@ class StereotypeDefinition(abc.ABC):
         return self._stereotype
 
 
+@dataclass
+class InformationIdentityFragment:
+    timestamp: int
+    serial: int
+    guid: bytes
+    suid: bytes
+    label: str
+
+
 class HypergraphMetaElement(abc.ABC):
 
     def __init__(self, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
@@ -88,14 +98,11 @@ class HypergraphMetaElement(abc.ABC):
         :param guid: GUID of element (most likely a hash) on creation must be unique
         :param serial: serial number in certain domain (e.g. when inserted into an edge or as part of a vertex)
         """
-        self.__timestamp = timestamp
-        self.__guid = guid
-        self.__serial = serial
+        self.__fragment = InformationIdentityFragment(timestamp, serial, guid, suid, label)
+
         if not (parent is None or isinstance(parent, HypergraphMetaElement)):
             raise InvalidParentException("Invalid parent element to hypergraph element")
         self._parent = parent
-        self.__suid = suid
-        self.__label = label
         # Template
         self._stereotype = StereotypeDefinition()
 
@@ -112,19 +119,19 @@ class HypergraphMetaElement(abc.ABC):
 
     @property
     def timestamp(self):
-        return self.__timestamp
+        return self.__fragment.timestamp
 
     @property
     def guid(self):
-        return self.__guid
+        return self.__fragment.guid
 
     @property
     def serial(self):
-        return self.__serial
+        return self.__fragment.serial
 
     @property
     def suid(self):
-        return self.__suid
+        return self.__fragment.suid
 
     """
     Parent in the compositional tree.
@@ -135,7 +142,7 @@ class HypergraphMetaElement(abc.ABC):
 
     @property
     def label(self):
-        return self.__label
+        return self.__fragment.label
 
 
 class HypergraphElement(HypergraphMetaElement):
@@ -351,10 +358,10 @@ class HypergraphElement(HypergraphMetaElement):
     def get_parent(self):
         return self.parent
 
-    def get_siblings(self, f):
+    def get_siblings(self, condition: typing.Callable[[typing.Any], bool]):
         if self.parent is None:
             return None
-        return self.get_parent().get_children(f, 1)
+        return self.get_parent().get_children(condition, 1)
 
 
 def common_ancestor(a: HypergraphElement, b: HypergraphElement):
