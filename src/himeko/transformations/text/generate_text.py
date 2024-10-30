@@ -8,9 +8,23 @@ from himeko.hbcm.elements.executable.edge import ExecutableHyperEdge
 
 
 class CommonOperations(object):
+
+    @staticmethod
+    def get_reference_name(referer: HypergraphElement, reference: HypergraphElement):
+        __ancestor = common_ancestor(referer, reference)
+        __el = reference
+        __res = []
+        while True:
+            if __el is None or __ancestor == __el:
+                break
+            __res.append(__el.name)
+            __el = __el.parent
+
+        return __res[::-1]
+
     @staticmethod
     def generate_reference_text(referer: HypergraphElement, reference: HypergraphElement):
-        return '.'.join(get_reference_name(referer, reference))
+        return '.'.join(CommonOperations.get_reference_name(referer, reference))
 
 
 class MetaElementTextGenerator(ExecutableHyperEdge):
@@ -60,18 +74,7 @@ class ElementSignatureTextGenerator(ExecutableHyperEdge):
             raise ValueError("Invalid arguments")
 
 
-def get_reference_name(referer: HypergraphElement, reference: HypergraphElement):
-    __ancestor = common_ancestor(referer, reference)
 
-    __el = reference
-    __res = []
-    while True:
-        if __el is None or __ancestor == __el:
-            break
-        __res.append(__el.name)
-        __el = __el.parent
-
-    return __res[::-1]
 
 
 class EdgeBodyTextGenerator(ExecutableHyperEdge):
