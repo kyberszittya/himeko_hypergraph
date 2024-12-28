@@ -261,6 +261,44 @@ class TransformationUrdf(ExecutableHyperEdge):
                 # Add joint to robot
                 self.robot_root_xml.append(joint_xml)
 
+    def __add_sensors(self, root):
+        sensor_element = self["kinematics_meta"]["elements"]["sensor"]
+        op_sensor = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
+            QueryIsStereotypeOperation, "sensor_stereotype", 0,
+            sensor_element
+        )
+        res_sensor = op_sensor(root)
+        for sensor in res_sensor:
+            sensor_xml = etree.Element("sensor")
+            sensor_xml.set("name", sensor.name)
+            sensor_type = sensor["type"].value
+            sensor_xml.set("type", sensor_type)
+            # Add sensor-specific parameters
+            for param in sensor["parameters"].value:
+                param_xml = etree.Element(param["name"].value)
+                param_xml.set("value", str(param["value"].value))
+                sensor_xml.append(param_xml)
+            self.robot_root_xml.append(sensor_xml)
+
+    def __add_controls(self, root):
+        control_element = self["kinematics_meta"]["elements"]["control"]
+        op_control = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
+            QueryIsStereotypeOperation, "control_stereotype", 0,
+            control_element
+        )
+        res_control = op_control(root)
+        for control in res_control:
+            control_xml = etree.Element("control")
+            control_xml.set("name", control.name)
+            control_type = control["type"].value
+            control_xml.set("type", control_type)
+            # Add control-specific parameters
+            for param in control["parameters"].value:
+                param_xml = etree.Element(param["name"].value)
+                param_xml.set("value", str(param["value"].value))
+                control_xml.append(param_xml)
+            self.robot_root_xml.append(control_xml)
+
     def operate(self, *args, **kwargs):
         if self._named_attr["kinematics_meta"] is None:
             raise ValueError("Kinematics meta is not defined")
