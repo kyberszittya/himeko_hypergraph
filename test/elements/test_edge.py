@@ -1,12 +1,24 @@
 import unittest
-
+import logging
 from himeko.hbcm.elements.edge import EnumHyperarcDirection
 from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
 
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 class TestEdgeCreation(unittest.TestCase):
 
+    def setUp(self):
+        logger.info("START: setUp")
+
+    def tearDown(self):
+        logger.info("END: tearDown")
+
     def test_edge_creation(self):
+        logger.info("START: test_edge_creation")
+        #
         vparent = FactoryHypergraphElements.create_vertex_default(
             "domain", 0, None)
         nameset = {"v0", "v1"}
@@ -26,4 +38,9 @@ class TestEdgeCreation(unittest.TestCase):
         assert len(out_relations) == len(in_relations)
         for i in e0.out_vertices():
             assert i.name in nameset
+        # END
+        logger.info("END: test_edge_creation")
 
+
+if __name__ == '__main__':
+    unittest.main()

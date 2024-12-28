@@ -199,8 +199,7 @@ class HypergraphElement(HypergraphMetaElement):
         raise KeyError
 
     def __generate_permuations(self):
-        self._prufer_code, self._element_sequence, self._node_map = (
-            generate_naive_prufer(self))
+        self._prufer_code, self._element_sequence, self._node_map = generate_naive_prufer(self)
         self._element_sequence.append(self)
         for i, s in enumerate(self._element_sequence):
             self._element_permutation[s] = i

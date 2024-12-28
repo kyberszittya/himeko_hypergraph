@@ -172,3 +172,35 @@ def create_vertex_by_labels(names: typing.Iterable[str], timestamp: int, parent:
         v = FactoryHypergraphElements.create_vertex_default(c, timestamp, parent)
         vertices.append(v)
     return vertices
+
+# Create a factory class to use an associated clock
+
+class FactoryHypergraphElementsClock(FactoryHypergraphElements):
+
+    def __init__(self, clock):
+        self.clock = clock
+
+    def create_vertex(self, name: str, parent: typing.Optional[HyperVertex] = None):
+        timestamp = self.clock.nano_sec
+        return super().create_vertex_default(name, timestamp, parent)
+
+    def create_edge(self, name: str, parent: HyperVertex):
+        timestamp = self.clock.nano_sec
+        return super().create_edge_default(name, timestamp, parent)
+
+    def create_vertex_constructor(self, t, name: str, parent: typing.Optional[HyperVertex] = None):
+        timestamp = self.clock.nano_sec
+        return super().create_vertex_constructor_default(t, name, timestamp, parent)
+
+    def create_vertex_constructor_kwargs(self, t, name: str, parent: typing.Optional[HyperVertex] = None, **kwargs):
+        timestamp = self.clock.nano_sec
+        return super().create_vertex_constructor_default_kwargs(t, name, timestamp, parent, **kwargs)
+
+    def create_attribute(self, name: str, value: typing.Any, type: str, parent: HyperVertex):
+        timestamp = self.clock.nano_sec
+        return super().create_attribute_default(name, value, type, timestamp, parent)
+
+    def create_edge_constructor(self, t, name: str, parent: HyperVertex, **kwargs):
+        timestamp = self.clock.nano_sec
+        return super().create_edge_constructor_default(t, name, timestamp, parent, **kwargs)
+
