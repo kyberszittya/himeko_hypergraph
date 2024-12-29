@@ -8,8 +8,13 @@ from himeko.hbcm.mapping.meta.tensor_mapping import AbstractHypergraphTensorTran
 
 class BijectiveCliqueExpansionTransformation(metaclass=AbstractHypergraphTensorTransformation):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__()
+        # Check if aggregate function is provided
+        if "aggregate_function" in kwargs:
+            self.aggregate_function = kwargs["aggregate_function"]
+        else:
+            self.aggregate_function = lambda x, y: (float(x) + float(y)) / 2
 
     def dimensions(self, root: HyperVertex, **kwargs):
         return len(list(root.children_permutation_sequence_nodes)), len(list(root.edge_order))
@@ -26,7 +31,10 @@ class BijectiveCliqueExpansionTransformation(metaclass=AbstractHypergraphTensorT
             for x in e.permutation_tuples():
                 i = perm[x[0]]
                 j = perm[x[1]]
-                adj[i, j] = float(x[2])
+                if x[4] == EnumHyperarcDirection.UNDEFINED and x[5] == EnumHyperarcDirection.UNDEFINED:
+                    adj[i, j] = self.aggregate_function(x[3], x[2])
+                else:
+                    adj[i, j] = float(x[2])
             e.adjacency_tensor = adj
             tensor[ei] = adj
         return tensor, n, n_e
@@ -66,12 +74,12 @@ class StarExpansionTransformation(metaclass=AbstractHypergraphTensorTransformati
             for a in e.out_relations():
                 a: HyperArc
                 i = perm[a.target]
-                adj[i, e_j] = float(a.value)
+                adj[e_j, i] = float(a.value)
             # Iterate over incoming relations
             for a in e.in_relations():
                 a: HyperArc
                 i = perm[a.target]
-                adj[e_j, i] = float(a.value)
+                adj[i, e_j] = float(a.value)
             e.adjacency_tensor = adj
             tensor[ei] = adj
         return tensor, n, n_e

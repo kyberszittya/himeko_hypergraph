@@ -183,11 +183,11 @@ class HyperEdge(HypergraphElement, ITensorTransformation, IComposable):
             yield x
 
     def out_relations(self) -> typing.Generator[HyperArc, None, None]:
-        for x in filter(lambda relx: relx.is_out(), self.all_relations()):
+        for x in filter(lambda arc: arc.is_out(), self.all_relations()):
             yield x
 
     def in_relations(self) -> typing.Generator[HyperArc, None, None]:
-        for x in filter(lambda relx: relx.is_in(), self.all_relations()):
+        for x in filter(lambda arc: arc.is_in(), self.all_relations()):
             yield x
 
     def out_vertices(self):
@@ -231,7 +231,8 @@ class HyperEdge(HypergraphElement, ITensorTransformation, IComposable):
     def permutation_tuples(self):
         for x in self.in_relations():
             for y in self.out_relations():
-                yield x.target, y.target, x.value, y.value
+                if not x.target == y.target:
+                    yield x.target, y.target, x.value, y.value, x.direction, y.direction
 
     def update_permutation_tuples(self):
         for t in self.permutation_tuples():

@@ -40,7 +40,6 @@ class TestTensorTransformationStarExpansion(unittest.TestCase):
         self.assertIsNotNone(tensor)
         self.assertEqual(n, 6)
         self.assertEqual(n_e, 3)
-        print(tensor)
         # Ensure aggregated tensor is symmetric
         aggregate_tensor = np.sum(tensor, axis=0)
         self.assertTrue(np.all(aggregate_tensor == aggregate_tensor.T))
@@ -111,9 +110,6 @@ class TestTensorTransformationStarExpansion(unittest.TestCase):
         self.assertEqual(n_e, _e)
         #
         logger.info("END: test_dense_tensor_transformation_star_expansion")
-
-
-
 
 
 if __name__ == '__main__':
