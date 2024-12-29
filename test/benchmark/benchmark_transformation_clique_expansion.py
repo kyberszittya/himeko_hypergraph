@@ -34,7 +34,7 @@ def main():
             results.append((_n, _e, dt))
 
     # Save results to file
-    with open("benchmark_star_expansion.csv", "w") as f:
+    with open("benchmark_clique_expansion.csv", "w") as f:
         f.write("n,e,dt\n")
         for r in results:
             f.write("{},{},{}\n".format(r[0], r[1], r[2]))

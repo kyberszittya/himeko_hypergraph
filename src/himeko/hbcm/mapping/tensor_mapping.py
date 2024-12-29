@@ -31,10 +31,7 @@ class BijectiveCliqueExpansionTransformation(metaclass=AbstractHypergraphTensorT
             for x in e.permutation_tuples():
                 i = perm[x[0]]
                 j = perm[x[1]]
-                if x[4] == EnumHyperarcDirection.UNDEFINED and x[5] == EnumHyperarcDirection.UNDEFINED:
-                    adj[i, j] = self.aggregate_function(x[3], x[2])
-                else:
-                    adj[i, j] = float(x[2])
+                adj[i, j] = self.aggregate_function(x[3], x[2])
             e.adjacency_tensor = adj
             tensor[ei] = adj
         return tensor, n, n_e
