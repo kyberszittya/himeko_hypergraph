@@ -1,4 +1,4 @@
-from himeko.hbcm.elements.edge import HyperEdge, EnumHyperarcDirection
+from himeko.hbcm.elements.edge import HyperEdge, EnumHyperarcDirection, HyperArc
 from himeko.hbcm.elements.vertex import HyperVertex
 
 import numpy as np
@@ -61,14 +61,17 @@ class StarExpansionTransformation(metaclass=AbstractHypergraphTensorTransformati
         for ei, e in enumerate(edges):
             e: HyperEdge
             adj = np.zeros((n, n))
-            for x in e.permutation_tuples():
-                # Add edge outgoing from util node
-                i = perm[x[0]]
-                e_j = perm[e]
-                adj[i, e_j] = float(x[2])
-                # Outgoing edge
-                j = perm[x[1]]
-                adj[e_j, j] = float(x[2])
+            e_j = perm[e]
+            # Iterate over outgoing relations
+            for a in e.out_relations():
+                a: HyperArc
+                i = perm[a.target]
+                adj[i, e_j] = float(a.value)
+            # Iterate over incoming relations
+            for a in e.in_relations():
+                a: HyperArc
+                i = perm[a.target]
+                adj[e_j, i] = float(a.value)
             e.adjacency_tensor = adj
             tensor[ei] = adj
         return tensor, n, n_e

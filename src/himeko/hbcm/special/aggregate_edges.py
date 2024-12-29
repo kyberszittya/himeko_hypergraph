@@ -1,7 +1,7 @@
 import time
 import typing
 
-from himeko.hbcm.elements.edge import Hyperarc
+from himeko.hbcm.elements.edge import HyperArc
 from himeko.hbcm.elements.executable.edge import ExecutableHyperEdge
 from himeko.hbcm.elements.vertex import HyperVertex
 from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
@@ -23,7 +23,7 @@ class CombineEdgeMaxValues(ExecutableHyperEdge):
             t, '_'.join(["combine", self.name]), time.time_ns(),
         )
         for r in rels:
-            r: Hyperarc
+            r: HyperArc
             n: HyperVertex = r.target
 
 

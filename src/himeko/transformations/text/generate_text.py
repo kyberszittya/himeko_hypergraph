@@ -1,5 +1,5 @@
 from himeko.hbcm.elements.attribute import HypergraphAttribute
-from himeko.hbcm.elements.edge import HyperEdge, Hyperarc
+from himeko.hbcm.elements.edge import HyperEdge, HyperArc
 from himeko.hbcm.elements.element import HypergraphElement, common_ancestor
 from himeko.hbcm.elements.interfaces.base_interfaces import IComposable
 from himeko.hbcm.elements.vertex import HyperVertex
@@ -90,7 +90,7 @@ class EdgeBodyTextGenerator(ExecutableHyperEdge):
             text += " " * indent + self.generate_relation_text(edge, r) +"\n"
         return text
 
-    def generate_relation_text(self, edge: HyperEdge, r: Hyperarc):
+    def generate_relation_text(self, edge: HyperEdge, r: HyperArc):
         if r.value == 1.0:
             return f"{r.direction} {CommonOperations.generate_reference_text(edge, r.target)}, "
         else:

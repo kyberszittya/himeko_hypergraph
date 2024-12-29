@@ -46,7 +46,7 @@ class ReferenceQuery(object):
         self.modifier = modifier
 
 
-class Hyperarc(HypergraphMetaElement):
+class HyperArc(HypergraphMetaElement):
 
     def __init__(self, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str, value,
                  parent: HypergraphElement, target: HypergraphElement, direction: EnumHyperarcDirection):
@@ -115,9 +115,9 @@ class HyperEdge(HypergraphElement, ITensorTransformation, IComposable):
             parent: HyperVertex
             parent.add_element(self)
         # Relations
-        self.__relations: typing.Dict[bytes, Hyperarc] = {}
+        self.__relations: typing.Dict[bytes, HyperArc] = {}
         # Vertex associations
-        self.__associations: typing.Dict[bytes, Hyperarc] = {}
+        self.__associations: typing.Dict[bytes, HyperArc] = {}
         # Counts
         self.__cnt_in_relations = 0
         self.__cnt_out_relations = 0
@@ -138,7 +138,7 @@ class HyperEdge(HypergraphElement, ITensorTransformation, IComposable):
         # TODO: SUID revamp
         suid = guid
         n_assoc = len(self.__associations.keys())
-        rel = Hyperarc(self.timestamp, n_assoc, guid, suid, __lbl, _val, self, v, d)
+        rel = HyperArc(self.timestamp, n_assoc, guid, suid, __lbl, _val, self, v, d)
         self.__associations[guid] = rel
         # Increment relation number
         match d:
@@ -176,17 +176,17 @@ class HyperEdge(HypergraphElement, ITensorTransformation, IComposable):
             raise InvalidHypergraphElementException("Unable to check containment of incompatible element")
         return True
 
-    def all_relations(self) -> typing.Generator[Hyperarc, None, None]:
+    def all_relations(self) -> typing.Generator[HyperArc, None, None]:
         for x in self.__associations.values():
             yield x
         for x in self.__relations.values():
             yield x
 
-    def out_relations(self) -> typing.Generator[Hyperarc, None, None]:
+    def out_relations(self) -> typing.Generator[HyperArc, None, None]:
         for x in filter(lambda relx: relx.is_out(), self.all_relations()):
             yield x
 
-    def in_relations(self) -> typing.Generator[Hyperarc, None, None]:
+    def in_relations(self) -> typing.Generator[HyperArc, None, None]:
         for x in filter(lambda relx: relx.is_in(), self.all_relations()):
             yield x
 
