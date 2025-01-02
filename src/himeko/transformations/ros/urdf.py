@@ -16,8 +16,42 @@ class TransformationUrdf(ExecutableHyperEdge):
     def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
                  parent: HypergraphElement = None, kinematics_meta=None):
         super().__init__(name, timestamp, serial, guid, suid, label, parent)
-        self._named_attr["kinematics_meta"] = kinematics_meta
+        # Kinematics meta data check
+        if kinematics_meta is None:
+            raise ValueError("Kinematics meta is required")
+        self._kinematics_meta = kinematics_meta
+        self.__setup_kinematics_element()
+
+
+    def __setup_kinematics_element(self):
         self.robot_root_xml = etree.Element("robot")
+        # Set up stereotypes
+        self.geom_box = self._kinematics_meta["geometry"]["box"]
+        self.geom_cylinder = self._kinematics_meta["geometry"]["cylinder"]
+        self.geom_sphere = self._kinematics_meta["geometry"]["sphere"]
+        # Axis
+        self.axis_element = self._kinematics_meta["axes"]["axis_definition"]
+        # Link and frame
+        self.link_element = self._kinematics_meta["elements"]["link"]
+        self.frame_element = self._kinematics_meta["elements"]["frame"]
+        # Joints
+        self.joint_element = self._kinematics_meta["elements"]["joint"]
+        self.rev_joint = self._kinematics_meta["rev_joint"]
+        self.fixed_joint = self._kinematics_meta["fixed_joint"]
+        # Angle
+        self.angle_unit = self._kinematics_meta["units"]["angle"].value
+
+    @property
+    def meta_kinematics(self):
+        return self._kinematics_meta
+
+    @meta_kinematics.setter
+    def meta_kinematics(self, value):
+        if value is None:
+            raise ValueError("Kinematics meta is required")
+        self._kinematics_meta = value
+        self.__setup_kinematics_element()
+
 
     @staticmethod
     def __generate_geometry(geometry, *args):
@@ -50,7 +84,7 @@ class TransformationUrdf(ExecutableHyperEdge):
         return geometry_xml
 
     def calc_inertia(self, geometry, mass, *standard_geometries):
-
+        # Get standard geometries
         _box, _cylinder, _sphere = standard_geometries
         ixx, iyy, izz = 1, 1, 1
         ixz, ixy, iyz = 0, 0, 0
@@ -81,18 +115,16 @@ class TransformationUrdf(ExecutableHyperEdge):
     def __add_links(self, root):
         # Geometry
         geometries = [
-            self["kinematics_meta"]["geometry"]["box"],
-            self["kinematics_meta"]["geometry"]["cylinder"],
-            self["kinematics_meta"]["geometry"]["sphere"]
+            self.geom_box,
+            self.geom_cylinder,
+            self.geom_sphere
         ]
         # Get frames
-        link_element = self["kinematics_meta"]["elements"]["link"]
-        frame_element = self["kinematics_meta"]["elements"]["frame"]
         op = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
             QueryIsStereotypeOperation, "frame_stereotype", 0,
-            frame_element
+            self.frame_element
         )
-        res = op(frame_element, root, depth=None)
+        res = op(self.frame_element, root, depth=None)
         # Add frames (single links)
         for link in res:
             link_xml = etree.Element("link")
@@ -100,12 +132,11 @@ class TransformationUrdf(ExecutableHyperEdge):
             # Add link to robot
             self.robot_root_xml.append(link_xml)
         # Get link element
-        link_element = self["kinematics_meta"]["elements"]["link"]
         op = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
             QueryIsStereotypeOperation, "link_stereotype", 0,
-            link_element
+            self.link_element
         )
-        res = op(link_element, root, depth=None)
+        res = op(self.link_element, root, depth=None)
         # Add links
         for link in res:
             link_xml = etree.Element("link")
@@ -200,13 +231,13 @@ class TransformationUrdf(ExecutableHyperEdge):
         return axis_xml
 
     def __convert_angles(self, angles):
-
-        if "radian" == self["kinematics_meta"]["units"]["angle"].value:
-            return angles
-        elif "degree" == self["kinematics_meta"]["units"]["angle"].value:
-            return np.deg2rad(angles)
-        else:
-            raise ValueError("Unknown angle")
+        match self.angle_unit:
+            case "radian":
+                return angles
+            case "degree":
+                return np.deg2rad(angles)
+            case _:
+                raise ValueError("Unknown angle")
 
     def __create_origin(self, value):
         # Add origin
@@ -237,17 +268,10 @@ class TransformationUrdf(ExecutableHyperEdge):
 
     def __add_joints(self, root):
         # Elements
-        # Geometric elements
-        link_element = self["kinematics_meta"]["elements"]["link"]
-        frame_element = self["kinematics_meta"]["elements"]["frame"]
-        joint_element = self["kinematics_meta"]["elements"]["joint"]
-        rev_joint = self["kinematics_meta"]["rev_joint"]
-        fixed_joint = self["kinematics_meta"]["fixed_joint"]
-        axis_element = self["kinematics_meta"]["axes"]["axis_definition"]
         # Operations
         op_joint = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
             QueryIsStereotypeOperation, "joint_stereotype", 0,
-            stereotype=joint_element
+            stereotype=self.joint_element
         )
         res_joint = op_joint(root)
         # Add joints
@@ -255,15 +279,15 @@ class TransformationUrdf(ExecutableHyperEdge):
             j: HyperEdge
             # Generate permutation pairs of joints: all out relations to incoming relations
             permutations = list(j.directed_relation_permutation_with_condition(
-                lambda x: link_element in x.target.stereotype or frame_element in x.target.stereotype)
+                lambda x: self.link_element in x.target.stereotype or self.frame_element in x.target.stereotype)
             )
             for parent, child in permutations:
                 # Create joint element
                 joint_xml = etree.Element("joint")
-                if rev_joint in j.stereotype:
+                if self.rev_joint in j.stereotype:
                     joint_xml.set("type", "revolute")
                     self.__setup_revolute_joint(joint_xml, j)
-                elif fixed_joint in j.stereotype:
+                elif self.fixed_joint in j.stereotype:
                     joint_xml.set("type", "fixed")
                 # Add parent
                 parent_xml = etree.Element("parent")
@@ -276,7 +300,7 @@ class TransformationUrdf(ExecutableHyperEdge):
                 origin_xml = self.__create_origin(child.value)
                 joint_xml.append(origin_xml)
                 # Add axis
-                axis_xml = self.__add_axis(j, axis_element)
+                axis_xml = self.__add_axis(j, self.axis_element)
                 joint_xml.append(axis_xml)
                 # Add name to element
                 if len(permutations) == 1:
@@ -325,7 +349,7 @@ class TransformationUrdf(ExecutableHyperEdge):
             self.robot_root_xml.append(control_xml)
 
     def operate(self, *args, **kwargs):
-        if self._named_attr["kinematics_meta"] is None:
+        if self._kinematics_meta is None:
             raise ValueError("Kinematics meta is not defined")
         root = args[0]
         self.robot_root_xml.set("name", root.name)
