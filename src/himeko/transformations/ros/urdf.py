@@ -125,8 +125,6 @@ class TransformationUrdf(ExecutableHyperEdge):
             root_origin = None
             if "origin" in link:
                 root_origin = link["origin"]
-                # Create root element
-                el_root_origin = self.__create_origin(root_origin)
             # Add inertia calculation
             if "inertia" not in link:
                 ixx, iyy, izz, ixz, ixy, iyz = self.calc_inertia(
@@ -145,7 +143,9 @@ class TransformationUrdf(ExecutableHyperEdge):
             inertia_xml.set("iyz", str(iyz))
             inertial_xml.append(inertia_xml)
             if root_origin is not None:
-                inertia_xml.append(el_root_origin)
+                # Create root element
+                el_root_origin = self.__create_origin(root_origin)
+                inertial_xml.append(el_root_origin)
             # Geometry
             _visual = link["visual"]
             # Create visual element
@@ -157,6 +157,8 @@ class TransformationUrdf(ExecutableHyperEdge):
             # Wrap up
             visual_xml.append(visual_geom)
             if root_origin is not None:
+                # Create root element
+                el_root_origin = self.__create_origin(root_origin)
                 visual_xml.append(el_root_origin)
             # Color
             _color_element = link["color"]
@@ -181,6 +183,8 @@ class TransformationUrdf(ExecutableHyperEdge):
             collision_geom = self.__generate_geometry(_collision, *geometries)
             collision_xml.append(collision_geom)
             if root_origin is not None:
+                # Create root element
+                el_root_origin = self.__create_origin(root_origin)
                 collision_xml.append(el_root_origin)
 
     @staticmethod
