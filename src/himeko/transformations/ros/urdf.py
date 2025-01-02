@@ -85,6 +85,20 @@ class TransformationUrdf(ExecutableHyperEdge):
             self["kinematics_meta"]["geometry"]["cylinder"],
             self["kinematics_meta"]["geometry"]["sphere"]
         ]
+        # Get frames
+        link_element = self["kinematics_meta"]["elements"]["link"]
+        frame_element = self["kinematics_meta"]["elements"]["frame"]
+        op = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
+            QueryIsStereotypeOperation, "frame_stereotype", 0,
+            frame_element
+        )
+        res = op(frame_element, root, depth=None)
+        # Add frames (single links)
+        for link in res:
+            link_xml = etree.Element("link")
+            link_xml.set("name", link.name)
+            # Add link to robot
+            self.robot_root_xml.append(link_xml)
         # Get link element
         link_element = self["kinematics_meta"]["elements"]["link"]
         op = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
@@ -207,12 +221,24 @@ class TransformationUrdf(ExecutableHyperEdge):
                 origin_xml.set("rpy", " ".join([str(r) for r in rpy]))
         return origin_xml
 
+    def __setup_revolute_joint(self, joint_xml, j):
+        # Add limit
+        limit_xml = etree.Element("limit")
+        limit = j["limit"].value
+        limit_xml.set("lower", str(limit["lower"].value))
+        limit_xml.set("upper", str(limit["upper"].value))
+        limit_xml.set("effort", str(limit["effort"].value))
+        limit_xml.set("velocity", str(limit["velocity"].value))
+        joint_xml.append(limit_xml)
+
     def __add_joints(self, root):
         # Elements
         # Geometric elements
         link_element = self["kinematics_meta"]["elements"]["link"]
+        frame_element = self["kinematics_meta"]["elements"]["frame"]
         joint_element = self["kinematics_meta"]["elements"]["joint"]
         rev_joint = self["kinematics_meta"]["rev_joint"]
+        fixed_joint = self["kinematics_meta"]["fixed_joint"]
         axis_element = self["kinematics_meta"]["axes"]["axis_definition"]
         # Operations
         op_joint = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
@@ -225,13 +251,16 @@ class TransformationUrdf(ExecutableHyperEdge):
             j: HyperEdge
             # Generate permutation pairs of joints: all out relations to incoming relations
             permutations = list(j.directed_relation_permutation_with_condition(
-                lambda x: link_element in x.target.stereotype)
+                lambda x: link_element in x.target.stereotype or frame_element in x.target.stereotype)
             )
             for parent, child in permutations:
                 # Create joint element
                 joint_xml = etree.Element("joint")
                 if rev_joint in j.stereotype:
                     joint_xml.set("type", "revolute")
+                    self.__setup_revolute_joint(joint_xml, j)
+                elif fixed_joint in j.stereotype:
+                    joint_xml.set("type", "fixed")
                 # Add parent
                 parent_xml = etree.Element("parent")
                 parent_xml.set("link", parent.target.name)
@@ -245,14 +274,6 @@ class TransformationUrdf(ExecutableHyperEdge):
                 # Add axis
                 axis_xml = self.__add_axis(j, axis_element)
                 joint_xml.append(axis_xml)
-                # Add limit
-                limit_xml = etree.Element("limit")
-                limit = j["limit"].value
-                limit_xml.set("lower", str(limit["lower"].value))
-                limit_xml.set("upper", str(limit["upper"].value))
-                limit_xml.set("effort", str(limit["effort"].value))
-                limit_xml.set("velocity", str(limit["velocity"].value))
-                joint_xml.append(limit_xml)
                 # Add name to element
                 if len(permutations) == 1:
                     joint_xml.set("name", j.name)

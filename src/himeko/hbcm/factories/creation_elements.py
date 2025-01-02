@@ -3,6 +3,8 @@ import typing
 from himeko.hbcm.elements.attribute import HypergraphAttribute
 from himeko.hbcm.elements.edge import HyperEdge
 from himeko.hbcm.elements.element import HypergraphElement
+from himeko.hbcm.elements.executable.edge import ExecutableHyperEdge
+from himeko.hbcm.elements.executable.vertex import ExecutableHyperVertex
 from himeko.hbcm.elements.vertex import HyperVertex
 
 import hashlib
@@ -137,7 +139,8 @@ class FactoryHypergraphElements(object):
 
     @classmethod
     def create_vertex_constructor_default(cls, t, name: str, timestamp: int,
-                                          parent: typing.Optional[HyperVertex] = None) -> HyperVertex:
+                                          parent: typing.Optional[HyperVertex] = None) \
+            -> HyperVertex|ExecutableHyperVertex:
         label, serial, guid, suid = cls.create_default_attributes(name, timestamp, parent)
         v0 = t(name, timestamp, serial, guid, suid, label, parent)
         return v0
@@ -157,7 +160,8 @@ class FactoryHypergraphElements(object):
         return a0
 
     @classmethod
-    def create_edge_constructor_default(cls, t, name: str, timestamp: int, parent: HyperVertex, **kwargs) -> HyperEdge:
+    def create_edge_constructor_default(cls, t, name: str, timestamp: int, parent: HyperVertex, **kwargs) \
+            -> HyperEdge|ExecutableHyperEdge:
         serial = len(parent)
         label = create_default_edge_label(name, timestamp, serial, parent)
         guid = create_default_edge_guid(name, timestamp, serial, parent)
