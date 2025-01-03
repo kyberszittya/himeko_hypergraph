@@ -40,6 +40,8 @@ class TransformationUrdf(ExecutableHyperEdge):
         self.fixed_joint = self._kinematics_meta["fixed_joint"]
         # Angle
         self.angle_unit = self._kinematics_meta["units"]["angle"].value
+        # Operate joint stereotype
+        self.op_joint = None
 
     @property
     def meta_kinematics(self):
@@ -269,11 +271,12 @@ class TransformationUrdf(ExecutableHyperEdge):
     def __add_joints(self, root):
         # Elements
         # Operations
-        op_joint = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
-            QueryIsStereotypeOperation, "joint_stereotype", 0,
-            stereotype=self.joint_element
-        )
-        res_joint = op_joint(root)
+        if self.op_joint is None:
+            self.op_joint = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
+                QueryIsStereotypeOperation, "joint_stereotype", 0,
+                stereotype=self.joint_element
+            )
+        res_joint = self.op_joint(root)
         # Add joints
         for j in res_joint:
             j: HyperEdge
@@ -330,23 +333,91 @@ class TransformationUrdf(ExecutableHyperEdge):
             self.robot_root_xml.append(sensor_xml)
 
     def __add_controls(self, root):
-        control_element = self["kinematics_meta"]["elements"]["control"]
+        control_element = self._kinematics_meta["elements"]["control"]
         op_control = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
             QueryIsStereotypeOperation, "control_stereotype", 0,
             control_element
         )
-        res_control = op_control(root)
+        res_control = op_control(control_element, root)
+        ros2_control_element = None
+        # get joints
+        res_joint = list(self.op_joint(root))
         for control in res_control:
-            control_xml = etree.Element("control")
+            if ros2_control_element is None:
+                gazebo_element = etree.Element("gazebo")
+                ros2_control_plugin_element = etree.Element("plugin")
+                ros2_control_plugin_element.set("filename", "gz_ros2_control-system")
+                ros2_control_plugin_element.set("name", "gz_ros2_control::GazeboSimROS2ControlPlugin")
+                # Controller file as a text element (package element)
+                parameters = etree.Element("parameters")
+                # Add parameters as text element
+                parameters.text = "control.yaml"
+                ros2_control_plugin_element.append(parameters)
+
+                gazebo_element.append(ros2_control_plugin_element)
+                self.robot_root_xml.append(gazebo_element)
+            control_xml = etree.Element("ros2_control")
             control_xml.set("name", control.name)
-            control_type = control["type"].value
-            control_xml.set("type", control_type)
-            # Add control-specific parameters
-            for param in control["parameters"].value:
-                param_xml = etree.Element(param["name"].value)
-                param_xml.set("value", str(param["value"].value))
-                control_xml.append(param_xml)
+            control_xml.set("type", "system")
+            # Add GazeboSimSystem
+            hardware_sim = etree.Element("hardware")
+            # Add plugin
+            hardware_plugin = etree.Element("plugin")
+            hardware_plugin.text =  "gz_ros2_control/GazeboSimSystem"
+            hardware_sim.append(hardware_plugin)
+            control_xml.append(hardware_sim)
+            # Add joints
+            for j in res_joint:
+                j: HyperEdge
+                if self.fixed_joint in j.stereotype.leaf_stereotypes:
+                    continue
+                joint_xml = etree.Element("joint")
+                joint_xml.set("name", j.name)
+                control_xml.append(joint_xml)
+                # Command interface
+                # Position interface
+                command_interface = etree.Element("command_interface")
+                command_interface.set("name", "position")
+                joint_xml.append(command_interface)
+                # Velocity interface
+                command_interface = etree.Element("command_interface")
+                command_interface.set("name", "velocity")
+                joint_xml.append(command_interface)
+                # State interface
+                # Position interface
+                state_interface = etree.Element("state_interface")
+                state_interface.set("name", "position")
+                initial_value = etree.Element("param")
+                initial_value.set("name", "initial_value")
+                # Text
+                initial_value.text = "0.0"
+                state_interface.append(initial_value)
+                joint_xml.append(state_interface)
+                # Velocity interface
+                state_interface = etree.Element("state_interface")
+                state_interface.set("name", "velocity")
+                # Initial value (param element)
+                initial_value = etree.Element("param")
+                initial_value.set("name", "initial_value")
+                # Text
+                initial_value.text = "0.0"
+                state_interface.append(initial_value)
+                joint_xml.append(state_interface)
+                # Effort interface
+                state_interface = etree.Element("state_interface")
+                state_interface.set("name", "effort")
+                initial_value = etree.Element("param")
+                initial_value.set("name", "initial_value")
+                # Text
+                initial_value.text = "0.0"
+                state_interface.append(initial_value)
+                joint_xml.append(state_interface)
+
+
+
             self.robot_root_xml.append(control_xml)
+
+
 
     def operate(self, *args, **kwargs):
         if self._kinematics_meta is None:
@@ -355,6 +426,7 @@ class TransformationUrdf(ExecutableHyperEdge):
         self.robot_root_xml.set("name", root.name)
         self.__add_links(root )
         self.__add_joints(root)
+        self.__add_controls(root)
         return self.robot_root_xml
 
 
