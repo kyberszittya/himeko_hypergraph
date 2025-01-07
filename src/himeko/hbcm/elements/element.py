@@ -78,6 +78,10 @@ class StereotypeDefinition(abc.ABC):
     def elements(self):
         return self._stereotype
 
+    @property
+    def stereotypes(self):
+        return self.__stereotype_fringe()
+
 
 @dataclass
 class InformationIdentityFragment:

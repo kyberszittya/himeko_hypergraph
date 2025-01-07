@@ -3,6 +3,7 @@ import typing
 from dataclasses import dataclass
 from enum import Enum
 
+from himeko.hbcm.elements.attribute import HypergraphAttribute
 from himeko.hbcm.elements.element import HypergraphElement, HypergraphMetaElement
 from himeko.hbcm.elements.interfaces.base_interfaces import IComposable
 from himeko.hbcm.elements.interfaces.transformation_interfaces import ITensorTransformation
@@ -125,6 +126,27 @@ class HyperEdge(HypergraphElement, ITensorTransformation, IComposable):
         self._permutation_tuples = []
         # Adjacency tensor
         self._adj = None
+        # Setup degree attributes
+        self._degree_in = 0
+        self._degree_out = 0
+
+    @property
+    def attribute_names(self):
+        return [c for c in self._named_attr.keys()]
+
+    @property
+    def degree_in(self):
+        return self._degree_in
+
+    @property
+    def degree_out(self):
+        return self._degree_out
+
+    def inc_degree_in(self):
+        self._degree_in += 1
+
+    def inc_degree_out(self):
+        self._degree_out += 1
 
     def __create_default_relation_guid(self, label: str) -> bytes:
         return hashlib.sha384(label.encode('utf-8')).digest()
@@ -169,6 +191,32 @@ class HyperEdge(HypergraphElement, ITensorTransformation, IComposable):
         e, d, v = r
         if not isinstance(e, HyperEdge):
             raise InvalidHypergraphElementException("Unable to associate edge with incompatible element")
+        __lbl = relation_label_default(self, e, d)
+        guid = self.__create_default_relation_guid(__lbl)
+        # TODO: SUID revamp
+        suid = guid
+        n_assoc = len(self.__associations.keys())
+        rel = HyperArc(self.timestamp, n_assoc, guid, suid, __lbl, v, self, e, d)
+        self.__associations[guid] = rel
+        # Increment relation number
+        match d:
+            case EnumHyperarcDirection.IN:
+                self.__cnt_in_relations += 1
+                # Increment degree (out)
+                if isinstance(v, IComposable):
+                    v.inc_degree_out()
+            case EnumHyperarcDirection.OUT:
+                self.__cnt_out_relations += 1
+                # Increment degree (in)
+                if isinstance(v, IComposable):
+                    v.inc_degree_in()
+            case EnumHyperarcDirection.UNDEFINED:
+                self.__cnt_out_relations += 1
+                self.__cnt_in_relations += 1
+                # Increment degree (both in and out)
+                if isinstance(v, IComposable):
+                    v.inc_degree_out()
+                    v.inc_degree_in()
         # TODO: finish
 
     def element_in_edge(self, v: HypergraphElement) -> bool:
@@ -196,13 +244,21 @@ class HyperEdge(HypergraphElement, ITensorTransformation, IComposable):
     def in_vertices(self):
         return map(lambda x: x.target, self.in_relations())
 
+    def __associate_element(self, el):
+        if isinstance(el[0], HyperEdge):
+            self.associate_edge(el)
+        elif isinstance(el[0], HyperVertex) or isinstance(el[0], HypergraphAttribute):
+            self.associate_vertex(el)
+        else:
+            raise InvalidHypergraphElementException("Unable to associate incompatible element: {}".format(el))
+
     def __iter__(self):
         return self.all_relations()
 
     # Overload operations
 
     def __iadd__(self, other):
-        self.associate_vertex(other)
+        self.__associate_element(other)
         return self
 
     def __isub__(self, other):

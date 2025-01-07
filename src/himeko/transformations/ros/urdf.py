@@ -332,7 +332,11 @@ class TransformationUrdf(ExecutableHyperEdge):
                 sensor_xml.append(param_xml)
             self.robot_root_xml.append(sensor_xml)
 
-    def __add_controls(self, root):
+    def __add_controls(self, root: HyperVertex):
+        sim_plugin = None
+        if "sim_plugin" in self._kinematics_meta:
+            sim_plugin = self._kinematics_meta["sim_plugin"]
+
         control_element = self._kinematics_meta["elements"]["control"]
         op_control = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
             QueryIsStereotypeOperation, "control_stereotype", 0,
@@ -340,78 +344,59 @@ class TransformationUrdf(ExecutableHyperEdge):
         )
         res_control = op_control(control_element, root)
         ros2_control_element = None
+        control_plugin = self._kinematics_meta["control_plugin"]
         # get joints
-        res_joint = list(self.op_joint(root))
-        for control in res_control:
-            if ros2_control_element is None:
+
+
+        if sim_plugin is not None:
+            for plugin in root.get_children(lambda x: sim_plugin in x.stereotype):
                 gazebo_element = etree.Element("gazebo")
                 ros2_control_plugin_element = etree.Element("plugin")
-                ros2_control_plugin_element.set("filename", "gz_ros2_control-system")
-                ros2_control_plugin_element.set("name", "gz_ros2_control::GazeboSimROS2ControlPlugin")
-                # Controller file as a text element (package element)
+                ros2_control_plugin_element.set("name", plugin["plugin"].value)
+                ros2_control_plugin_element.set("filename", plugin["filename"].value)
                 parameters = etree.Element("parameters")
                 # Add parameters as text element
-                parameters.text = "control.yaml"
+                parameters.text = plugin["parameters"].value
                 ros2_control_plugin_element.append(parameters)
-
+                ros2_control_plugin_element.append(parameters)
                 gazebo_element.append(ros2_control_plugin_element)
                 self.robot_root_xml.append(gazebo_element)
+
+        for plugin in root.get_children(lambda x: control_plugin in x.stereotype.leaf_stereotypes):
+            plugin: HyperEdge
             control_xml = etree.Element("ros2_control")
-            control_xml.set("name", control.name)
+            control_xml.set("name", plugin.name)
             control_xml.set("type", "system")
             # Add GazeboSimSystem
             hardware_sim = etree.Element("hardware")
             # Add plugin
             hardware_plugin = etree.Element("plugin")
-            hardware_plugin.text =  "gz_ros2_control/GazeboSimSystem"
+            hardware_plugin.text =  plugin["plugin"].value
             hardware_sim.append(hardware_plugin)
             control_xml.append(hardware_sim)
             # Add joints
-            for j in res_joint:
-                j: HyperEdge
+            for _j in filter(lambda x: self.joint_element in x.target.stereotype, plugin.out_relations()):
+                j: HyperEdge = _j.target
                 if self.fixed_joint in j.stereotype.leaf_stereotypes:
                     continue
                 joint_xml = etree.Element("joint")
                 joint_xml.set("name", j.name)
                 control_xml.append(joint_xml)
+                if "control" in j:
+                    control_edge = j["control"]
+                    if isinstance(control_edge, HyperEdge):
+                        for st in control_edge.stereotype.leaf_stereotypes:
+                            for control_interface in st.in_vertices():
+                                el = etree.Element("command_interface")
+                                el.set("name", control_interface.name)
+                                joint_xml.append(el)
+                            for state_interface in st.out_vertices():
+                                el = etree.Element("state_interface")
+                                el.set("name", state_interface.name)
+                                joint_xml.append(el)
                 # Command interface
                 # Position interface
-                command_interface = etree.Element("command_interface")
-                command_interface.set("name", "position")
-                joint_xml.append(command_interface)
-                # Velocity interface
-                command_interface = etree.Element("command_interface")
-                command_interface.set("name", "velocity")
-                joint_xml.append(command_interface)
-                # State interface
-                # Position interface
-                state_interface = etree.Element("state_interface")
-                state_interface.set("name", "position")
-                initial_value = etree.Element("param")
-                initial_value.set("name", "initial_value")
-                # Text
-                initial_value.text = "0.0"
-                state_interface.append(initial_value)
-                joint_xml.append(state_interface)
-                # Velocity interface
-                state_interface = etree.Element("state_interface")
-                state_interface.set("name", "velocity")
-                # Initial value (param element)
-                initial_value = etree.Element("param")
-                initial_value.set("name", "initial_value")
-                # Text
-                initial_value.text = "0.0"
-                state_interface.append(initial_value)
-                joint_xml.append(state_interface)
-                # Effort interface
-                state_interface = etree.Element("state_interface")
-                state_interface.set("name", "effort")
-                initial_value = etree.Element("param")
-                initial_value.set("name", "initial_value")
-                # Text
-                initial_value.text = "0.0"
-                state_interface.append(initial_value)
-                joint_xml.append(state_interface)
+
 
 
 
