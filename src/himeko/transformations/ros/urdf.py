@@ -21,6 +21,8 @@ class TransformationUrdf(ExecutableHyperEdge):
             raise ValueError("Kinematics meta is required")
         self._kinematics_meta = kinematics_meta
         self.__setup_kinematics_element()
+        # Control parameters path
+        self._control_param_path = None
 
 
     def __setup_kinematics_element(self):
@@ -42,6 +44,10 @@ class TransformationUrdf(ExecutableHyperEdge):
         self.angle_unit = self._kinematics_meta["units"]["angle"].value
         # Operate joint stereotype
         self.op_joint = None
+
+    @property
+    def control_param_path(self):
+        return self._control_param_path
 
     @property
     def meta_kinematics(self):
@@ -356,7 +362,8 @@ class TransformationUrdf(ExecutableHyperEdge):
                 ros2_control_plugin_element.set("filename", plugin["filename"].value)
                 parameters = etree.Element("parameters")
                 # Add parameters as text element
-                parameters.text = plugin["parameters"].value
+                self._control_param_path = plugin["parameters"].value
+                parameters.text = self.control_param_path
                 ros2_control_plugin_element.append(parameters)
                 ros2_control_plugin_element.append(parameters)
                 gazebo_element.append(ros2_control_plugin_element)

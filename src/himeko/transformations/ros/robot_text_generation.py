@@ -1,3 +1,5 @@
+import typing
+
 from himeko.common.clock import NullClock
 from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
 from himeko.transformations.ros.urdf import TransformationUrdf
@@ -11,7 +13,7 @@ class CreateRobotText():
             self.clock = clock
         else:
             self.clock = NullClock()
-        self.op_transform_urdf = None
+        self.op_transform_urdf: typing.Optional[TransformationUrdf] = None
 
 
     def create_robot_urdf_text(self):
@@ -22,6 +24,12 @@ class CreateRobotText():
                 kinematics_meta=self.meta_kinematics
             )
         return lambda x: self.op_transform_urdf(x)
+
+    @property
+    def control_parameters_path(self):
+        if self.op_transform_urdf is None:
+            return None
+        return self.op_transform_urdf.control_param_path
 
     @staticmethod
     def create_gz_load_launch_file(path, robot):
