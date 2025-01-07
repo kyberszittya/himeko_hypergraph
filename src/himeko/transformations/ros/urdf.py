@@ -262,8 +262,8 @@ class TransformationUrdf(ExecutableHyperEdge):
         # Add limit
         limit_xml = etree.Element("limit")
         limit = j["limit"].value
-        limit_xml.set("lower", str(limit["lower"].value))
-        limit_xml.set("upper", str(limit["upper"].value))
+        limit_xml.set("lower", str(self.__convert_angles(limit["lower"].value)))
+        limit_xml.set("upper", str(self.__convert_angles(limit["upper"].value)))
         limit_xml.set("effort", str(limit["effort"].value))
         limit_xml.set("velocity", str(limit["velocity"].value))
         joint_xml.append(limit_xml)

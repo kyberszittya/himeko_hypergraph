@@ -64,6 +64,7 @@ class RosControlConfigurationClass():
             sub_indent = indent
             sub_indent += 2
             controllers_def_text += (sub_indent * " ") + "ros__parameters:\n"
+            sub_indent += 2
             # Get joint list
             joints = filter(lambda x: self.__joint in x.target.stereotype, c["joints"].out_relations())
             joints = map(lambda x: x.target, joints)
