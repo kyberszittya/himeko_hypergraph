@@ -39,7 +39,7 @@ class RosControlConfigurationClass():
         indent = 4
         for c in robot.get_children(lambda x: self.meta_controller in x.stereotype):
             controller_manager_controllers += indent*" " + c.name + ":\n"
-            controller_manager_controllers += (indent + 2)*" " + "type: " + c["type"].value + ":\n"
+            controller_manager_controllers += (indent + 2)*" " + "type: " + c["type"].value + "\n"
         return controller_manager_controllers
 
 
