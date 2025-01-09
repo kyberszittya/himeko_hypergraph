@@ -40,6 +40,7 @@ class TransformationUrdf(ExecutableHyperEdge):
         self.joint_element = self._kinematics_meta["elements"]["joint"]
         self.rev_joint = self._kinematics_meta["rev_joint"]
         self.fixed_joint = self._kinematics_meta["fixed_joint"]
+        self.conti_joint = self._kinematics_meta["conti_joint"]
         # Angle
         self.angle_unit = self._kinematics_meta["units"]["angle"].value
         # Operate joint stereotype
@@ -298,6 +299,8 @@ class TransformationUrdf(ExecutableHyperEdge):
                     self.__setup_revolute_joint(joint_xml, j)
                 elif self.fixed_joint in j.stereotype:
                     joint_xml.set("type", "fixed")
+                elif self.conti_joint in j.stereotype:
+                    joint_xml.set("type", "continuous")
                 # Add parent
                 parent_xml = etree.Element("parent")
                 parent_xml.set("link", parent.target.name)
