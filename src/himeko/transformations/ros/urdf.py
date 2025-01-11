@@ -372,7 +372,8 @@ class TransformationUrdf(ExecutableHyperEdge):
                 gazebo_element.append(ros2_control_plugin_element)
                 self.robot_root_xml.append(gazebo_element)
 
-        for plugin in root.get_children(lambda x: control_plugin in x.stereotype.leaf_stereotypes):
+
+        for plugin in root.get_children(lambda x: control_plugin in x.stereotype):
             plugin: HyperEdge
             control_xml = etree.Element("ros2_control")
             control_xml.set("name", plugin.name)
