@@ -7,13 +7,13 @@ from himeko.transformations.meta_generators import MetaKinematicGenerator
 class GenerateLaunch(MetaKinematicGenerator):
 
     def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
-                 parent: HypergraphElement = None, kinematics_meta=None):
-        super().__init__(name, timestamp, serial, guid, suid, label, parent, kinematics_meta)
+                 parent: HypergraphElement = None, kinematics_meta=None, communications_meta=None):
+        super().__init__(name, timestamp, serial, guid, suid, label, parent, kinematics_meta, communications_meta)
         # Get control definition
         self._control_definition = self._kinematics_meta["elements"]["control_definition"]
         self._sim_plugin = self._kinematics_meta["sim_plugin"]
-        self._topic_definition = self._kinematics_meta["topic_definition"]
-        self._topic = self._kinematics_meta["topic"]
+        self._topic_definition = self._communications_meta["topic_definition"]
+        self._topic = self._communications_meta["topic"]
         # Get meta controller
         self.meta_controller = self._kinematics_meta["controllers"]["meta_controller"]
 

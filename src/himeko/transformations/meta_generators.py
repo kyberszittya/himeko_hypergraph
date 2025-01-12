@@ -5,12 +5,17 @@ from himeko.hbcm.elements.executable.edge import ExecutableHyperEdge
 class MetaKinematicGenerator(ExecutableHyperEdge):
 
     def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
-                 parent: HypergraphElement = None, kinematics_meta=None):
+                 parent: HypergraphElement = None, kinematics_meta=None, communications_meta=None):
         super().__init__(name, timestamp, serial, guid, suid, label, parent)
         # Kinematics meta data check
         if kinematics_meta is None:
             raise ValueError("Kinematics meta is required")
         self._kinematics_meta = kinematics_meta
+        # Communications
+        if communications_meta is None:
+            raise ValueError("Communications meta is required")
+        self._communications_meta = communications_meta
+        # Setup kinematics element
         self.__setup_kinematics_element()
 
     def __setup_kinematics_element(self):

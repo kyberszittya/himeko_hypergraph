@@ -1,7 +1,6 @@
 from himeko.hbcm.elements.attribute import HypergraphAttribute
 from himeko.hbcm.elements.edge import HyperEdge
 from himeko.hbcm.elements.element import HypergraphElement
-from himeko.hbcm.elements.executable.edge import ExecutableHyperEdge
 
 from lxml import etree
 import numpy as np
@@ -65,8 +64,8 @@ class TransformationUrdfCameraElements(object):
 class TransformationUrdf(MetaKinematicGenerator):
 
     def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
-                 parent: HypergraphElement = None, kinematics_meta=None):
-        super().__init__(name, timestamp, serial, guid, suid, label, parent, kinematics_meta)
+                 parent: HypergraphElement = None, kinematics_meta=None, communications_meta=None):
+        super().__init__(name, timestamp, serial, guid, suid, label, parent, kinematics_meta, communications_meta)
         # Control parameters path
         self._control_param_path = None
         # Geometric calculations
@@ -354,10 +353,10 @@ class TransformationUrdf(MetaKinematicGenerator):
         # Get topic elements
         sensor_mapping = dict()
         sensor_element = self._kinematics_meta["elements"]["sensor"]
-        for topic in root.get_children(lambda x: self._kinematics_meta["topic"] in x.stereotype):
-            for sensor in filter(lambda x: sensor_element in x.target.stereotype, topic.out_relations()):
-                sensor_mapping[sensor.target] = topic
-
+        for topic in root.get_children(lambda x: self._communications_meta["topic"] in x.stereotype):
+            for _sensor in filter(lambda x: sensor_element in x.target.stereotype, topic.out_relations()):
+                sensor: HyperVertex = _sensor.target
+                sensor_mapping[sensor] = topic
         #
 
         sensor_connection_element = self._kinematics_meta["sensors"]["sensor_connection"]
@@ -415,8 +414,8 @@ class TransformationUrdf(MetaKinematicGenerator):
                     visualize_element.text = "true"
                     sensor_xml.append(visualize_element)
                     # Get topics
-                    for topic_definition in filter(lambda x: x.target.stereotype, sensor_mapping[sensor].in_relations()):
-                        topic_definition: HyperVertex = topic_definition.target
+                    for _topic_definition in filter(lambda x: x.target.stereotype, sensor_mapping[sensor].in_relations()):
+                        topic_definition: HyperVertex = _topic_definition.target
                         topic_element = etree.Element("topic")
                         topic_element.text = '/'.join([root.name, topic_definition["topic_name"].value])
                         sensor_xml.append(topic_element)
