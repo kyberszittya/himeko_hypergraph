@@ -2,6 +2,7 @@ import typing
 
 from himeko.common.clock import NullClock
 from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
+from himeko.transformations.ros.generate_launch_python import GenerateLaunch
 from himeko.transformations.ros.urdf import TransformationUrdf
 
 
@@ -14,6 +15,7 @@ class CreateRobotText():
         else:
             self.clock = NullClock()
         self.op_transform_urdf: typing.Optional[TransformationUrdf] = None
+        self.op_generate_launch: typing.Optional[GenerateLaunch] = None
 
 
     def create_robot_urdf_text(self):
@@ -24,6 +26,15 @@ class CreateRobotText():
                 kinematics_meta=self.meta_kinematics
             )
         return lambda x: self.op_transform_urdf(x)
+
+    def create_launch_text(self):
+        self.clock.tick()
+        if self.op_generate_launch is None:
+            self.op_generate_launch = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
+                GenerateLaunch, "generate_launch", self.clock.nano_sec,
+                kinematics_meta=self.meta_kinematics
+            )
+        return lambda x: self.op_generate_launch(x)
 
     @property
     def control_parameters_path(self):

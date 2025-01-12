@@ -9,42 +9,75 @@ import numpy as np
 from himeko.hbcm.elements.vertex import HyperVertex
 from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
 from himeko.hbcm.queries.composition import QueryIsStereotypeOperation
+from himeko.transformations.meta_generators import MetaKinematicGenerator
 
 
-class TransformationUrdf(ExecutableHyperEdge):
+class UrdfGeometricCalculations(object):
+
+    def convert_angles(self, angles, angle_unit):
+        match angle_unit:
+            case "radian":
+                return angles
+            case "degree":
+                return np.deg2rad(angles)
+            case _:
+                raise ValueError("Unknown angle")
+
+
+class TransformationUrdfCameraElements(object):
+
+    def __init__(self, angle_unit):
+        self.__angle_unit = angle_unit
+        self.__geometric_calculations = UrdfGeometricCalculations()
+
+    def setup_camera_elements(self, sensor):
+        # Camera
+        camera_xml = etree.Element("camera")
+        # FOV
+        fov_element = etree.Element("horizontal_fov")
+        # Convert angles
+        fov_element.text = str(self.__geometric_calculations.convert_angles(sensor["fov"].value[0], self.__angle_unit))
+        camera_xml.append(fov_element)
+        # Clip values
+        clip_element = etree.Element("clip")
+        # Image
+        image_element = etree.Element("image")
+        image_width = etree.Element("width")
+        image_width.text = str(int(sensor["image_size"].value[0]))
+        image_height = etree.Element("height")
+        image_height.text = str(int(sensor["image_size"].value[1]))
+        image_element.append(image_width)
+        image_element.append(image_height)
+        camera_xml.append(image_element)
+        # Text values
+        near_element = etree.Element("near")
+        near_element.text = str(sensor["clip"].value[0])
+        far_element = etree.Element("far")
+        far_element.text = str(sensor["clip"].value[1])
+        clip_element.append(near_element)
+        clip_element.append(far_element)
+        camera_xml.append(clip_element)
+        # Camera XML
+        return camera_xml
+
+
+
+class TransformationUrdf(MetaKinematicGenerator):
 
     def __init__(self, name: str, timestamp: int, serial: int, guid: bytes, suid: bytes, label: str,
                  parent: HypergraphElement = None, kinematics_meta=None):
-        super().__init__(name, timestamp, serial, guid, suid, label, parent)
-        # Kinematics meta data check
-        if kinematics_meta is None:
-            raise ValueError("Kinematics meta is required")
-        self._kinematics_meta = kinematics_meta
-        self.__setup_kinematics_element()
+        super().__init__(name, timestamp, serial, guid, suid, label, parent, kinematics_meta)
         # Control parameters path
         self._control_param_path = None
-
-
-    def __setup_kinematics_element(self):
+        # Geometric calculations
+        self._geometric_calculations = UrdfGeometricCalculations()
+        # Camera elements generator
+        self._camera_elements = TransformationUrdfCameraElements(self.angle_unit)
+        # Setup root XML
         self.robot_root_xml = etree.Element("robot")
-        # Set up stereotypes
-        self.geom_box = self._kinematics_meta["geometry"]["box"]
-        self.geom_cylinder = self._kinematics_meta["geometry"]["cylinder"]
-        self.geom_sphere = self._kinematics_meta["geometry"]["sphere"]
-        # Axis
-        self.axis_element = self._kinematics_meta["axes"]["axis_definition"]
-        # Link and frame
-        self.link_element = self._kinematics_meta["elements"]["link"]
-        self.frame_element = self._kinematics_meta["elements"]["frame"]
-        # Joints
-        self.joint_element = self._kinematics_meta["elements"]["joint"]
-        self.rev_joint = self._kinematics_meta["rev_joint"]
-        self.fixed_joint = self._kinematics_meta["fixed_joint"]
-        self.conti_joint = self._kinematics_meta["conti_joint"]
-        # Angle
-        self.angle_unit = self._kinematics_meta["units"]["angle"].value
-        # Operate joint stereotype
-        self.op_joint = None
+
+
+
 
     @property
     def control_param_path(self):
@@ -240,13 +273,8 @@ class TransformationUrdf(ExecutableHyperEdge):
         return axis_xml
 
     def __convert_angles(self, angles):
-        match self.angle_unit:
-            case "radian":
-                return angles
-            case "degree":
-                return np.deg2rad(angles)
-            case _:
-                raise ValueError("Unknown angle")
+        return self._geometric_calculations.convert_angles(angles, self.angle_unit)
+
 
     def __create_origin(self, value):
         # Add origin
@@ -372,33 +400,7 @@ class TransformationUrdf(ExecutableHyperEdge):
                     # Add sensor-specific parameters
 
                     if camera_element in sensor.stereotype:
-                        # Camera
-                        camera_xml = etree.Element("camera")
-                        # FOV
-                        fov_element = etree.Element("horizontal_fov")
-                        # Convert angles
-                        fov_element.text = str(self.__convert_angles(sensor["fov"].value[0]))
-                        camera_xml.append(fov_element)
-                        # Clip values
-                        clip_element = etree.Element("clip")
-                        # Image
-                        image_element = etree.Element("image")
-                        image_width = etree.Element("width")
-                        image_width.text = str(int(sensor["image_size"].value[0]))
-                        image_height = etree.Element("height")
-                        image_height.text = str(int(sensor["image_size"].value[1]))
-                        image_element.append(image_width)
-                        image_element.append(image_height)
-                        camera_xml.append(image_element)
-                        # Text values
-                        near_element = etree.Element("near")
-                        near_element.text = str(sensor["clip"].value[0])
-                        far_element = etree.Element("far")
-                        far_element.text = str(sensor["clip"].value[1])
-                        clip_element.append(near_element)
-                        clip_element.append(far_element)
-                        camera_xml.append(clip_element)
-                        # Camera XML
+                        camera_xml = self._camera_elements.setup_camera_elements(sensor)
                         sensor_xml.append(camera_xml)
                     # Update rate
                     update_rate_element = etree.Element("update_rate")
@@ -416,11 +418,38 @@ class TransformationUrdf(ExecutableHyperEdge):
                     for topic_definition in filter(lambda x: x.target.stereotype, sensor_mapping[sensor].in_relations()):
                         topic_definition: HyperVertex = topic_definition.target
                         topic_element = etree.Element("topic")
-                        topic_element.text = topic_definition["topic_name"].value
+                        topic_element.text = '/'.join([root.name, topic_definition["topic_name"].value])
                         sensor_xml.append(topic_element)
                     reference_xml.append(sensor_xml)
 
                 self.robot_root_xml.append(reference_xml)
+
+    def __setup_sim_plugin(self, plugin: HyperEdge):
+        gazebo_element = etree.Element("gazebo")
+        ros2_control_plugin_element = etree.Element("plugin")
+        ros2_control_plugin_element.set("name", plugin["plugin"].value)
+        ros2_control_plugin_element.set("filename", plugin["filename"].value)
+        parameters = etree.Element("parameters")
+        # Add parameters as text element
+        self._control_param_path = plugin["parameters"].value
+        parameters.text = self.control_param_path
+        ros2_control_plugin_element.append(parameters)
+        ros2_control_plugin_element.append(parameters)
+        gazebo_element.append(ros2_control_plugin_element)
+        self.robot_root_xml.append(gazebo_element)
+
+    def __setup_control_interface(self, control_edge: HyperEdge, joint_xml):
+        if isinstance(control_edge, HyperEdge):
+            for st in control_edge.stereotype.leaf_stereotypes:
+                for control_interface in st.in_vertices():
+                    el = etree.Element("command_interface")
+                    el.set("name", control_interface.name)
+                    joint_xml.append(el)
+                for state_interface in st.out_vertices():
+                    el = etree.Element("state_interface")
+                    el.set("name", state_interface.name)
+                    joint_xml.append(el)
+
 
     def __add_controls(self, root: HyperVertex):
         sim_plugin = None
@@ -436,22 +465,9 @@ class TransformationUrdf(ExecutableHyperEdge):
         ros2_control_element = None
         control_plugin = self._kinematics_meta["control_plugin"]
         # get joints
-
-
         if sim_plugin is not None:
             for plugin in root.get_children(lambda x: sim_plugin in x.stereotype):
-                gazebo_element = etree.Element("gazebo")
-                ros2_control_plugin_element = etree.Element("plugin")
-                ros2_control_plugin_element.set("name", plugin["plugin"].value)
-                ros2_control_plugin_element.set("filename", plugin["filename"].value)
-                parameters = etree.Element("parameters")
-                # Add parameters as text element
-                self._control_param_path = plugin["parameters"].value
-                parameters.text = self.control_param_path
-                ros2_control_plugin_element.append(parameters)
-                ros2_control_plugin_element.append(parameters)
-                gazebo_element.append(ros2_control_plugin_element)
-                self.robot_root_xml.append(gazebo_element)
+                self.__setup_sim_plugin(plugin)
         for plugin in root.get_children(lambda x: control_plugin in x.stereotype):
             plugin: HyperEdge
             control_xml = etree.Element("ros2_control")
@@ -474,16 +490,7 @@ class TransformationUrdf(ExecutableHyperEdge):
                 control_xml.append(joint_xml)
                 if "control" in j:
                     control_edge = j["control"]
-                    if isinstance(control_edge, HyperEdge):
-                        for st in control_edge.stereotype.leaf_stereotypes:
-                            for control_interface in st.in_vertices():
-                                el = etree.Element("command_interface")
-                                el.set("name", control_interface.name)
-                                joint_xml.append(el)
-                            for state_interface in st.out_vertices():
-                                el = etree.Element("state_interface")
-                                el.set("name", state_interface.name)
-                                joint_xml.append(el)
+                    self.__setup_control_interface(control_edge, joint_xml)
                 # Command interface
                 # Position interface
             self.robot_root_xml.append(control_xml)
