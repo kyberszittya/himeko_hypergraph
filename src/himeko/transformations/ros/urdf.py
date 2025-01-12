@@ -323,23 +323,104 @@ class TransformationUrdf(ExecutableHyperEdge):
                 self.robot_root_xml.append(joint_xml)
 
     def __add_sensors(self, root):
-        sensor_element = self["kinematics_meta"]["elements"]["sensor"]
+        # Get topic elements
+        sensor_mapping = dict()
+        sensor_element = self._kinematics_meta["elements"]["sensor"]
+        for topic in root.get_children(lambda x: self._kinematics_meta["topic"] in x.stereotype):
+            for sensor in filter(lambda x: sensor_element in x.target.stereotype, topic.out_relations()):
+                sensor_mapping[sensor.target] = topic
+
+        #
+
+        sensor_connection_element = self._kinematics_meta["sensors"]["sensor_connection"]
         op_sensor = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
             QueryIsStereotypeOperation, "sensor_stereotype", 0,
-            sensor_element
+            sensor_connection_element
         )
-        res_sensor = op_sensor(root)
-        for sensor in res_sensor:
-            sensor_xml = etree.Element("sensor")
-            sensor_xml.set("name", sensor.name)
-            sensor_type = sensor["type"].value
-            sensor_xml.set("type", sensor_type)
-            # Add sensor-specific parameters
-            for param in sensor["parameters"].value:
-                param_xml = etree.Element(param["name"].value)
-                param_xml.set("value", str(param["value"].value))
-                sensor_xml.append(param_xml)
-            self.robot_root_xml.append(sensor_xml)
+        res_sensor_connection = op_sensor(sensor_connection_element, root)
+        # Sensor plugin
+        sensor_plugin_flag = False
+        # Camera
+        camera_element = self._kinematics_meta["sensors"]["rgb_camera"]
+        for sensor_connection in res_sensor_connection:
+            for _link_arc in filter(lambda x: self.link_element in x.target.stereotype, sensor_connection.out_relations()):
+                link: HyperVertex = _link_arc.target
+                reference_xml = etree.Element("gazebo")
+                reference_xml.set("reference", link.name)
+                # Add sensors
+                for _sensor_arc in filter(lambda x: sensor_element in x.target.stereotype, sensor_connection.in_relations()):
+                    if not sensor_plugin_flag:
+                        gazebo_element = etree.Element("gazebo")
+                        sensor_plugin_element = etree.Element("plugin")
+                        # Set filename
+                        sensor_plugin_element.set("filename", "gz-sim-sensors-system")
+                        # Name
+                        sensor_plugin_element.set("name", "gz::sim::systems::Sensors")
+                        # Set render engine as a spearate element
+                        render_engine = etree.Element("render_engine")
+                        render_engine.text = "ogre"
+                        sensor_plugin_element.append(render_engine)
+                        # Add plugin to gazebo
+                        gazebo_element.append(sensor_plugin_element)
+                        self.robot_root_xml.append(gazebo_element)
+                    #
+                    sensor: HyperVertex = _sensor_arc.target
+                    sensor_xml = etree.Element("sensor")
+                    sensor_xml.set("name", sensor.name)
+                    sensor_type = sensor["type"].value
+                    sensor_xml.set("type", sensor_type)
+                    # Add sensor-specific parameters
+
+                    if camera_element in sensor.stereotype:
+                        # Camera
+                        camera_xml = etree.Element("camera")
+                        # FOV
+                        fov_element = etree.Element("horizontal_fov")
+                        # Convert angles
+                        fov_element.text = str(self.__convert_angles(sensor["fov"].value[0]))
+                        camera_xml.append(fov_element)
+                        # Clip values
+                        clip_element = etree.Element("clip")
+                        # Image
+                        image_element = etree.Element("image")
+                        image_width = etree.Element("width")
+                        image_width.text = str(int(sensor["image_size"].value[0]))
+                        image_height = etree.Element("height")
+                        image_height.text = str(int(sensor["image_size"].value[1]))
+                        image_element.append(image_width)
+                        image_element.append(image_height)
+                        camera_xml.append(image_element)
+                        # Text values
+                        near_element = etree.Element("near")
+                        near_element.text = str(sensor["clip"].value[0])
+                        far_element = etree.Element("far")
+                        far_element.text = str(sensor["clip"].value[1])
+                        clip_element.append(near_element)
+                        clip_element.append(far_element)
+                        camera_xml.append(clip_element)
+                        # Camera XML
+                        sensor_xml.append(camera_xml)
+                    # Update rate
+                    update_rate_element = etree.Element("update_rate")
+                    update_rate_element.text = str(sensor["update_rate"].value)
+                    sensor_xml.append(update_rate_element)
+                    # Always on
+                    always_on_element = etree.Element("always_on")
+                    always_on_element.text = str(int(sensor["always_on"].value))
+                    sensor_xml.append(always_on_element)
+                    # Visualize
+                    visualize_element = etree.Element("visualize")
+                    visualize_element.text = "true"
+                    sensor_xml.append(visualize_element)
+                    # Get topics
+                    for topic_definition in filter(lambda x: x.target.stereotype, sensor_mapping[sensor].in_relations()):
+                        topic_definition: HyperVertex = topic_definition.target
+                        topic_element = etree.Element("topic")
+                        topic_element.text = topic_definition["topic_name"].value
+                        sensor_xml.append(topic_element)
+                    reference_xml.append(sensor_xml)
+
+                self.robot_root_xml.append(reference_xml)
 
     def __add_controls(self, root: HyperVertex):
         sim_plugin = None
@@ -371,8 +452,6 @@ class TransformationUrdf(ExecutableHyperEdge):
                 ros2_control_plugin_element.append(parameters)
                 gazebo_element.append(ros2_control_plugin_element)
                 self.robot_root_xml.append(gazebo_element)
-
-
         for plugin in root.get_children(lambda x: control_plugin in x.stereotype):
             plugin: HyperEdge
             control_xml = etree.Element("ros2_control")
@@ -407,10 +486,6 @@ class TransformationUrdf(ExecutableHyperEdge):
                                 joint_xml.append(el)
                 # Command interface
                 # Position interface
-
-
-
-
             self.robot_root_xml.append(control_xml)
 
 
@@ -423,6 +498,7 @@ class TransformationUrdf(ExecutableHyperEdge):
         self.__add_links(root )
         self.__add_joints(root)
         self.__add_controls(root)
+        self.__add_sensors(root)
         return self.robot_root_xml
 
 
