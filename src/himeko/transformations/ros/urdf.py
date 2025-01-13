@@ -369,6 +369,8 @@ class TransformationUrdf(MetaKinematicGenerator):
         sensor_plugin_flag = False
         # Camera
         camera_element = self._kinematics_meta["sensors"]["rgb_camera"]
+        # Scanner
+        laser_scanner_element = self._kinematics_meta["sensors"]["laser_scanner"]
         for sensor_connection in res_sensor_connection:
             for _link_arc in filter(lambda x: self.link_element in x.target.stereotype, sensor_connection.out_relations()):
                 link: HyperVertex = _link_arc.target
@@ -383,13 +385,15 @@ class TransformationUrdf(MetaKinematicGenerator):
                         sensor_plugin_element.set("filename", "gz-sim-sensors-system")
                         # Name
                         sensor_plugin_element.set("name", "gz::sim::systems::Sensors")
-                        # Set render engine as a spearate element
+                        # Set render engine as a separate element
                         render_engine = etree.Element("render_engine")
                         render_engine.text = "ogre"
                         sensor_plugin_element.append(render_engine)
                         # Add plugin to gazebo
                         gazebo_element.append(sensor_plugin_element)
                         self.robot_root_xml.append(gazebo_element)
+                        # Ensure it is only added once
+                        sensor_plugin_flag = True
                     #
                     sensor: HyperVertex = _sensor_arc.target
                     sensor_xml = etree.Element("sensor")
@@ -397,10 +401,69 @@ class TransformationUrdf(MetaKinematicGenerator):
                     sensor_type = sensor["type"].value
                     sensor_xml.set("type", sensor_type)
                     # Add sensor-specific parameters
-
+                    # Add camera
                     if camera_element in sensor.stereotype:
                         camera_xml = self._camera_elements.setup_camera_elements(sensor)
                         sensor_xml.append(camera_xml)
+                    # Add laser scanner
+                    elif laser_scanner_element in sensor.stereotype:
+                        ray_xml = etree.Element("ray")
+                        scan_xml = etree.Element("scan")
+                        horizontal_xml = etree.Element("horizontal")
+                        # Add horizontal values as text elements
+                        samples_xml = etree.Element("samples")
+                        samples_xml.text = str(sensor["samples"].value)
+                        horizontal_xml.append(samples_xml)
+                        resolution_xml = etree.Element("resolution")
+                        resolution_xml.text = str(sensor["resolution"].value)
+                        horizontal_xml.append(resolution_xml)
+                        angles = sensor["angle"].value
+                        min_angle_xml = etree.Element("min_angle")
+                        min_angle_xml.text = str(self.__convert_angles(angles[0]))
+                        horizontal_xml.append(min_angle_xml)
+                        max_angle_xml = etree.Element("max_angle")
+                        max_angle_xml.text = str(self.__convert_angles(angles[1]))
+                        horizontal_xml.append(max_angle_xml)
+                        # Setup vertical
+                        vertical_xml = etree.Element("vertical")
+                        samples_xml = etree.Element("samples")
+                        samples_xml.text = str(1)
+                        vertical_xml.append(samples_xml)
+                        resolution_xml = etree.Element("resolution")
+                        resolution_xml.text = str(0.01)
+                        vertical_xml.append(resolution_xml)
+                        min_angle_xml = etree.Element("min_angle")
+                        min_angle_xml.text = str(0)
+                        vertical_xml.append(min_angle_xml)
+                        max_angle_xml = etree.Element("max_angle")
+                        max_angle_xml.text = str(0)
+                        vertical_xml.append(max_angle_xml)
+                        # Add horizontal
+                        scan_xml.append(horizontal_xml)
+                        # Add vertical
+                        scan_xml.append(vertical_xml)
+                        # Add scan
+                        ray_xml.append(scan_xml)
+                        # Add range
+                        range_xml = etree.Element("range")
+                        range_values = sensor["range"].value
+                        # Minimal range
+                        min_range_xml = etree.Element("min")
+                        min_range_xml.text = str(range_values[0])
+                        range_xml.append(min_range_xml)
+                        # Maximal range
+                        max_range_xml = etree.Element("max")
+                        max_range_xml.text = str(range_values[1])
+                        range_xml.append(max_range_xml)
+                        # Add resolution
+                        resolution_xml = etree.Element("resolution")
+                        resolution_xml.text = str(sensor["range_resolution"].value)
+                        range_xml.append(resolution_xml)
+                        # Add range to ray
+                        ray_xml.append(range_xml)
+
+                        # Wrapup
+                        sensor_xml.append(ray_xml)
                     # Update rate
                     update_rate_element = etree.Element("update_rate")
                     update_rate_element.text = str(sensor["update_rate"].value)
@@ -414,11 +477,12 @@ class TransformationUrdf(MetaKinematicGenerator):
                     visualize_element.text = "true"
                     sensor_xml.append(visualize_element)
                     # Get topics
-                    for _topic_definition in filter(lambda x: x.target.stereotype, sensor_mapping[sensor].in_relations()):
-                        topic_definition: HyperVertex = _topic_definition.target
-                        topic_element = etree.Element("topic")
-                        topic_element.text = '/'.join([root.name, topic_definition["topic_name"].value])
-                        sensor_xml.append(topic_element)
+                    if sensor in sensor_mapping:
+                        for _topic_definition in filter(lambda x: x.target.stereotype, sensor_mapping[sensor].in_relations()):
+                            topic_definition: HyperVertex = _topic_definition.target
+                            topic_element = etree.Element("topic")
+                            topic_element.text = '/'.join([root.name, topic_definition["topic_name"].value])
+                            sensor_xml.append(topic_element)
                     reference_xml.append(sensor_xml)
 
                 self.robot_root_xml.append(reference_xml)

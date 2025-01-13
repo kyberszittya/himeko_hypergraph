@@ -32,21 +32,21 @@ class RosGazeboSimConfigurationGenerator(MetaKinematicGenerator):
     def generate_gazebo_sim_configuration(self, root):
         sensor_element = self._kinematics_meta["elements"]["sensor"]
         topic_definition = self._communications_meta["topic_definition"]
-        topic = self._communications_meta["topic"]
+        topic_def = self._communications_meta["topic"]
         defs = dict()
-        for topic in root.get_children(lambda x: topic in x.stereotype):
+        for _topic in root.get_children(lambda x: topic_def in x.stereotype):
             definition_sim_config = ""
-            topic: HyperEdge
+            _topic: HyperEdge
             # Get topic definitions
-            for c in filter(lambda x: topic_definition in x.target.stereotype, topic.in_relations()):
+            for c in filter(lambda x: topic_definition in x.target.stereotype, _topic.in_relations()):
                 _topic_def: HyperVertex = c.target
                 topic_type = _topic_def["message_type"]
-                for sensor in filter(lambda x: sensor_element in x.target.stereotype, topic.out_relations()):
+                for sensor in filter(lambda x: sensor_element in x.target.stereotype, _topic.out_relations()):
                     sensor: HyperArc = sensor.target
                     raw_topic_name = _topic_def["topic_name"].value
                     topic_name = '/'.join([root.name, sensor.name, _topic_def["topic_name"].value])
                     definition_sim_config += self.__yaml_entry_generator('/'.join([root.name, raw_topic_name]), topic_name, topic_type.value)
-            defs[topic.name] = definition_sim_config
+            defs[_topic.name] = definition_sim_config
         #
         return defs
 
