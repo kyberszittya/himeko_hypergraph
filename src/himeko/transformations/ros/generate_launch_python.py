@@ -1,3 +1,5 @@
+from queue import Queue
+
 from himeko.hbcm.elements.edge import HyperEdge
 from himeko.hbcm.elements.element import HypergraphElement
 from himeko.hbcm.elements.vertex import HyperVertex
@@ -16,37 +18,54 @@ class GenerateLaunch(MetaKinematicGenerator):
         self._topic = self._communications_meta["topic"]
         # Get meta controller
         self.meta_controller = self._kinematics_meta["controllers"]["meta_controller"]
+        # Joint definition
+        self._joint_definition = self._kinematics_meta["elements"]["joint"]
+        # Sensor element
+        self._sensor_element = self._kinematics_meta["elements"]["sensor"]
+        # Sensor connection
+        self._sensor_connection = self._kinematics_meta["sensors"]["sensor_connection"]
+        # Fixed joint
+        self._fixed_joint = self._kinematics_meta["fixed_joint"]
+        # Nodes to publish
+        self.nodes_to_publish = []
 
     def is_simulation(self, root):
         return len(list(root.get_children(lambda x: self._sim_plugin in x.stereotype))) > 0
 
+    def __get_sensor_link(self, robot: HyperVertex, sensor):
+        for connection in robot.get_children(lambda x: self._sensor_connection in x.stereotype and sensor in x.in_vertices()):
+            return list(connection.out_vertices())
+
+    def __get_root_link_of_sensor(self, robot: HyperVertex, sensor):
+        # Get sensor link
+        sensor_link = self.__get_sensor_link(robot, sensor)[0]
+        # Put the sensor link in the fringe
+        fringe = Queue()
+        fringe.put(sensor_link)
+        # Select joints
+        while not fringe.empty():
+            sensor_link = fringe.get()
+            sensor_joints = robot.get_children(lambda x: self._joint_definition in x.stereotype and sensor_link in x.out_vertices())
+            for joint in sensor_joints:
+                joint: HyperEdge
+                if self._fixed_joint in joint.stereotype:
+                    for v in joint.in_vertices():
+                        fringe.put(v)
+        if sensor_link is None:
+            raise ValueError(f"Sensor {sensor.name} has no link")
+        return sensor_link
+
     def collect_nodes_to_start(self, root):
         res = f"""
     nodes_to_start = [
-        robot_state_publisher_node,
-        joint_state_broadcaster_spawner,
 """
-        for _c in root.get_children(lambda x: self.meta_controller in x.stereotype):
-            res += f"""
-        intitial_{_c.name}_spawner_started,
-        intitial_{_c.name}_spawner_stopped,
-"""
-        is_simulation = self.is_simulation(root)
-        if is_simulation:
-            res += f"""
-        gz_sim_bridge,
-"""
-            # Get topic definitions
-            for _t in root.get_children(lambda x: self._topic in x.stereotype):
-                res += f"""
-        gz_sim_bridge_{_t.name},
-"""
+        for n in self.nodes_to_publish:
+            res += 8*' ' + f"""{n},\n"""
+
         res += f"""
     ]
 """
         return res
-
-
 
     def generate_joint_state_publisher(self, root):
         res = ""
@@ -66,6 +85,9 @@ class GenerateLaunch(MetaKinematicGenerator):
         arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
     )
 """
+            # Nodes to publish
+            self.nodes_to_publish.append("robot_state_publisher_node")
+            self.nodes_to_publish.append("joint_state_broadcaster_spawner")
         return res
 
     def generate_simulation_bridge(self, root):
@@ -83,11 +105,14 @@ class GenerateLaunch(MetaKinematicGenerator):
         output="screen"
     )    
             """
+            # Add nodes to publish
+            self.nodes_to_publish.append("gz_sim_bridge")
             # Get topic definitions
             for _t in root.get_children(lambda x: self._topic in x.stereotype):
                 _t: HyperEdge
+                __node_name = f"""gz_sim_bridge_{_t.name}"""
                 res += f"""            
-    gz_sim_bridge_{_t.name} = Node(
+    {__node_name} = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
         name="camera_bridge",
@@ -98,6 +123,26 @@ class GenerateLaunch(MetaKinematicGenerator):
         output="screen"
     )
 """
+                # Add nodes to publish
+                self.nodes_to_publish.append(__node_name)
+                # Add static tf subscribers
+                for _sensor in filter(lambda x: self._sensor_element in x.stereotype, _t.out_vertices()):
+                    sensor: HyperVertex = _sensor
+                    tf = self.__get_root_link_of_sensor(root, sensor)
+                    sensor_link = self.__get_sensor_link(root, sensor)[0]
+                    tf_link_name = '/'.join([root.name, tf.name, _sensor.name])
+                    tf_publisher_node_name = f"""gz_static_tf_publisher_{tf.name}_{sensor.name}"""
+                    res += f"""
+    {tf_publisher_node_name} = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        name="{tf_publisher_node_name}",
+        arguments=["0", "0", "0", "0", "0", "0", "{sensor_link.name}", "{tf_link_name}"],
+        output="screen"
+    )
+"""
+                    # Add nodes to publish
+                    self.nodes_to_publish.append(tf_publisher_node_name)
         return res
 
 
@@ -113,21 +158,26 @@ class GenerateLaunch(MetaKinematicGenerator):
     def generate_controller_spawner(self, controllers):
         res = ""
         for _c in controllers:
+            spawner_started_node_name = f"""intitial_{_c.name}_spawner_started"""
+            spawner_stopped_node_name = f"""intitial_{_c.name}_spawner_stopped"""
             res += f"""
     # There may be other controllers of the joints, but this is the initially-started one
-    intitial_{_c.name}_spawner_started = Node(
+    {spawner_started_node_name} = Node(
         package="controller_manager",
         executable="spawner",
         arguments=[intitial_{_c.name}, "-c", "/controller_manager"],
         condition=IfCondition(activate_{_c.name}),
     )
-    intitial_{_c.name}_spawner_stopped = Node(
+    {spawner_stopped_node_name} = Node(
         package="controller_manager",
         executable="spawner",
         arguments=[intitial_{_c.name}, "-c", "/controller_manager", "--stopped"],
         condition=UnlessCondition(activate_{_c.name}),
     )
 """
+            # Add nodes to publish
+            self.nodes_to_publish.append(spawner_started_node_name)
+            self.nodes_to_publish.append(spawner_stopped_node_name)
         return res
 
 
