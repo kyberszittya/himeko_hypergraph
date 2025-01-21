@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
 
+
 class TestFixedHypergraphTensor(unittest.TestCase):
 
     def setUp(self):
@@ -77,8 +78,6 @@ class TestFixedHypergraphTensor(unittest.TestCase):
             plt.savefig("output/fixed_hypergraph/clique/tensor_{}.png".format(i))
         #
         logger.info("END: test_fixed_hypergraph_clique_expansion")
-
-
 
 
 if __name__ == "__main__":
