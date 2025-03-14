@@ -25,6 +25,8 @@ class RosControlConfigurationClass():
         self._revolute_joint = self._meta_kinematics["rev_joint"]
         # Meta controller type
         self.meta_controller = self._meta_kinematics["controllers"]["meta_controller"]
+        # Sub types
+        self.diff_drive_controller = self._meta_kinematics["controllers"]["diff_drive_controller"]
 
     def __create_joint_text_list(self, joints, indent=6):
         res = ""
@@ -67,27 +69,47 @@ class RosControlConfigurationClass():
             sub_indent += 2
             # Get joint list
             joints = filter(lambda x: self.__joint in x.target.stereotype, c["joints"].out_relations())
-            joints = map(lambda x: x.target, joints)
-            controllers_def_text += (sub_indent * " ") + "joints:\n"
-            controllers_def_text += self.__create_joint_text_list(joints, sub_indent + 2)
-            controllers_def_text += (sub_indent * " ") + "command_interfaces:\n"
-            # Command interfaces (incoming relations of interfaces edge)
-            command_interfaces = c["interfaces"].in_relations()
-            for ci in command_interfaces:
-                controllers_def_text += (sub_indent + 2) * " " + "- " + ci.target.name + "\n"
-            controllers_def_text += (sub_indent * " ") + "state_interfaces:\n"
-            # State interfaces (outgoing relations of interfaces edge)
-            state_interfaces = c["interfaces"].out_relations()
-            for si in state_interfaces:
-                controllers_def_text += (sub_indent + 2) * " " + "- " + si.target.name + "\n"
+            if self.diff_drive_controller in c.stereotype:
+                joints = list(joints)
+                right_joints = filter(lambda x: x.value == "right", joints)
+                left_joints = filter(lambda x: x.value == "left", joints)
+                controllers_def_text += (sub_indent * " ") + f"right_wheel_names: {[x.target.name for x in right_joints]}\n"
+                controllers_def_text += (sub_indent * " ") + f"left_wheel_names: {[x.target.name for x in left_joints]}\n"
+                # Wheel separation
+                controllers_def_text += (sub_indent * " ") + f"wheel_separation: {c['wheel_separation'].value}\n"
+                # Wheel radius
+                controllers_def_text += (sub_indent * " ") + f"wheel_radius: {c['wheel_radius'].value}\n"
+                # Publish rate (odom)
+                controllers_def_text += (sub_indent * " ") + f"publish_rate: {c['publish_rate'].value}\n"
+                # Odom frame id
+                controllers_def_text += (sub_indent * " ") + f"odom_frame_id: {c['odom_frame_id'].value}\n"
+                # Base frame id
+                controllers_def_text += (sub_indent * " ") + f"base_frame_id: {c['base_frame_id'].value}\n"
+                # Covariances
+                # Pose covariance diagonal
 
-            # Publish rate
-            controllers_def_text += (sub_indent * " ") + f"state_publish_rate: {c['state_publish_rate'].value}\n"
-            controllers_def_text += (sub_indent * " ") + f"action_monitor_rate: {c['action_monitor_rate'].value}\n"
-            # Partial joints goal
-            controllers_def_text += (sub_indent * " ") + "allow_partial_joints_goal: false\n"
+            else:
+                joints = map(lambda x: x.target, joints)
+                controllers_def_text += (sub_indent * " ") + "joints:\n"
+                controllers_def_text += self.__create_joint_text_list(joints, sub_indent + 2)
+                controllers_def_text += (sub_indent * " ") + "command_interfaces:\n"
+                # Command interfaces (incoming relations of interfaces edge)
+                command_interfaces = c["interfaces"].in_relations()
+                for ci in command_interfaces:
+                    controllers_def_text += (sub_indent + 2) * " " + "- " + ci.target.name + "\n"
+                controllers_def_text += (sub_indent * " ") + "state_interfaces:\n"
+                # State interfaces (outgoing relations of interfaces edge)
+                state_interfaces = c["interfaces"].out_relations()
+                for si in state_interfaces:
+                    controllers_def_text += (sub_indent + 2) * " " + "- " + si.target.name + "\n"
 
-        return \
+                # Publish rate
+                controllers_def_text += (sub_indent * " ") + f"state_publish_rate: {c['state_publish_rate'].value}\n"
+                controllers_def_text += (sub_indent * " ") + f"action_monitor_rate: {c['action_monitor_rate'].value}\n"
+                # Partial joints goal
+                controllers_def_text += (sub_indent * " ") + "allow_partial_joints_goal: false\n"
+
+            return \
         f"""
 controller_manager:
   ros__parameters:
