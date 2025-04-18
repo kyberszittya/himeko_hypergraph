@@ -32,3 +32,11 @@ Issues = "https://github.com/kyberszittya/himeko_hypergraph/issues"
 [tool.pytest.ini_options]
 testpaths = ["test"]
 addopts = ["--verbose"]
+# Coverage configuration
+[tool.coverage.run]
+branch = true
+source = ["himeko"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 80
