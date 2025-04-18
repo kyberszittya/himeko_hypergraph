@@ -1,7 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
-from himeko_hypergraph.src.himeko.hbcm.elements.interfaces.base_interfaces import IComposable
 import logging
+
+from himeko.hbcm.elements.interfaces.base_interfaces import IComposable
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

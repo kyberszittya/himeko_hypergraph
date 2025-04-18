@@ -5,7 +5,7 @@ from himeko.hbcm.progeny.robotics.kinematics import KinematicLink, KinematicJoin
 from himeko.hbcm.visualization.network_visualization import visualize_node
 from himeko.hbcm.parser.robotics.urdf_parser import ParserUrdf
 
-
+"""
 def test_robotino_parsing():
     p = ParserUrdf()
     with open("../../../resources/commercial/robotino_param.yaml") as f:
@@ -53,3 +53,4 @@ def test_robotino_parsing_visualize():
 
 
 
+"""

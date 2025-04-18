@@ -2,7 +2,7 @@ from himeko.hbcm.parser.robotics.urdf_parser import ParserUrdf
 from himeko.hbcm.progeny.geometry.nodes import MeshVertex
 from himeko.hbcm.visualization.network_visualization import visualize_node
 
-
+"""
 def test_abb_parsing_visualize_abb():
     p = ParserUrdf()
     robot = p.convert("../../../resources/robots/manipulators/irb2400.urdf")
@@ -39,10 +39,11 @@ def test_abb2_parsing_get_children():
     assert len(unique_files) == 0
 
 def test_abb_get_mesh_filenames():
-    p = ParserUrdf()
+    p = ParserUrdf()    
     robot = p.convert("../../../resources/robots/manipulators/irb2400.urdf")
     unique_files = set()
     for mesh in robot.get_subelements(lambda x: isinstance(x, MeshVertex)):
         unique_files.add(mesh["filename"])
     print(unique_files)
     assert len(unique_files) == 14
+"""

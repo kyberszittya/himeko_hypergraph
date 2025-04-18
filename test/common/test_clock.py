@@ -1,7 +1,8 @@
 import unittest
-from himeko_hypergraph.src.himeko.common.clock import SystemTimeClock, NullClock
 import datetime
 import logging
+
+from himeko.common.clock import SystemTimeClock, NullClock
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
