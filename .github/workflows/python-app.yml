@@ -44,6 +44,8 @@ jobs:
       with:
         files: coverage.xml                            # generated in previous step
         fail_ci_if_error: true                         # make CI red if upload fails
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       #–– Keep an HTML report as an artifact ––
     - uses: actions/upload-artifact@v4
       with:
