@@ -26,6 +26,9 @@ dependencies = [
 [tool.setuptools]
 packages = ["himeko"]
 package-dir = {"" = "src"}
+[tool.setuptools.packages.find]
+where = ["src"]          # look under the src‑layout root
+exclude = ["test*", "docs*"]   # optional glob patterns to skip
 [project.urls]
 Homepage = "https://github.com/kyberszittya/himeko_hypergraph"
 Issues = "https://github.com/kyberszittya/himeko_hypergraph/issues"
