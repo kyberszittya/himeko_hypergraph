@@ -1,6 +1,9 @@
 # himeko_hypergraph
 Hypergraph description framework for numerous complex problems
 
+## Code summary
+[![codecov](https://codecov.io/gh/kyberszittya/himeko_hypergraph/branch/main/graph/badge.svg)](https://app.codecov.io/gh/kyberszittya/himeko_hypergraph)
+
 ## Installation
 You can install the package via pip:
 ```bash
