@@ -23,9 +23,9 @@ class TestParserSimplePrimitives(unittest.TestCase):
         self.assertEqual(robot["name"], "cube_robot")
         for l in robot.links:
             print(l["name"])
-        links = set([
+        links = {
             "base_link"
-        ])
+        }
 
         # Check if all links are present
         for l in robot.links:
