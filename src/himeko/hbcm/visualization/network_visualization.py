@@ -24,4 +24,3 @@ def visualize_node(node: RobotNode, viz_parent=False):
             G_viz.add_edge(node["name"], el["name"])
     nx.draw(G_viz, with_labels=True, node_color=color_map)
     plt.show()
-

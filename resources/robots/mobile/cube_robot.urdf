@@ -1,0 +1,23 @@
+<!-- Simple robot model for a cube -->
+<robot name="cube_robot">
+    <link name="base_link">
+        <inertial>
+            <mass value="19.0"/>
+            <inertia ixx="0.4394" ixy="0" ixz="0" iyy="0.4394" iyz="0.0" izz="0.5938"/>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        </inertial>
+        <visual>
+            <geometry>
+                <box size="1 1 1"/>
+            </geometry>
+            <material name="BaseColor">
+                <color rgba="0 0.6 0.4 1" />
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="1 1 1"/>
+            </geometry>
+        </collision>
+    </link>
+</robot>

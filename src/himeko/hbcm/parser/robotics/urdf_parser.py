@@ -9,7 +9,7 @@ from himeko.hbcm.elements.vertex import HyperVertex
 from himeko.hbcm.factories.creation_elements import FactoryHypergraphElements
 from himeko.hbcm.mapping.bijective_mapping import bijective_mapping
 from himeko.hbcm.progeny.geometry.nodes import VisualGeometry, CollisionGeometry, MeshVertex, \
-    BoxPrimitiveVertex, SpherePrimitiveVertex
+    BoxPrimitiveVertex, SpherePrimitiveVertex, CylinderPrimitiveVertex
 from himeko.hbcm.progeny.robotics.elements import RobotNode
 from himeko.hbcm.progeny.robotics.kinematics import KinematicLink, KinematicJoint
 
@@ -30,14 +30,14 @@ class ParserUrdf(object):
                 case 'box':
                     _geom = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
                         BoxPrimitiveVertex, "geom", t0, node)
-                    _geom["size"] = [float(x) for x in _el.attrib["size"].spit()]
+                    _geom["size"] = [float(x) for x in _el.attrib["size"].split()]
                 case 'sphere':
                     _geom = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
                         SpherePrimitiveVertex, "geom", t0, node)
                     _geom["radius"] = float(_el.attrib["radius"])
                 case 'cylinder':
                     _geom = FactoryHypergraphElements.create_vertex_constructor_default_kwargs(
-                        SpherePrimitiveVertex, "geom", t0, node)
+                        CylinderPrimitiveVertex, "geom", t0, node)
                     _geom["radius"] = [float(_el.attrib["radius"]), float(_el.attrib["length"])]
 
     def get_links(self, robot_node: HyperVertex, robot_item, t0: int):
