@@ -28,11 +28,11 @@ class EnumHyperarcDirection(Enum):
     def __str__(self):
         match(self):
             case EnumHyperarcDirection.UNDEFINED:
-                return "--"
+                return "~"
             case EnumHyperarcDirection.IN:
-                return "<-"
+                return "+"
             case EnumHyperarcDirection.OUT:
-                return "->"
+                return "-"
             case _:
                 raise InvalidRelationDirection("Invalid direction is provided during relation creation")
 
