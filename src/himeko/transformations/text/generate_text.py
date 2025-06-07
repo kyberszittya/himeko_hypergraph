@@ -36,7 +36,7 @@ class MetaElementTextGenerator(ExecutableHyperEdge):
         text = ""
         if isinstance(root, HyperVertex):
             if root.meta is not None:
-                text += f"[ {root.meta.filename}\n"
+                text += f"[ {root.meta.context_name}\n"
                 for imp in root.meta.imports:
                     text += " " * indent_step + f"import \"{imp}\"\n"
                 text += "]\n"

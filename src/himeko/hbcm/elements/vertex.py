@@ -9,9 +9,10 @@ from himeko.hbcm.exceptions.basic_exceptions import InvalidParentException
 
 class Metadata(object):
 
-    def __init__(self, filename: str):
-        self._filename = filename
+    def __init__(self, context_name: str):
+        self._context_name = context_name
         self.imports = []
+        self._metadata = {}
 
     def add_import(self, alias: str):
         self.imports.append(alias)
@@ -19,12 +20,22 @@ class Metadata(object):
     def remove_import(self, name: str):
         self.imports.remove(name)
 
+    def add_metadata(self, key: str, value: typing.Any):
+        if key in self._metadata:
+            raise KeyError(f"Metadata key '{key}' already exists.")
+        self._metadata[key] = value
+
+    def remove_metadata(self, key: str):
+        if key not in self._metadata:
+            raise KeyError(f"Metadata key '{key}' does not exist.")
+        del self._metadata[key]
+
     def all_imports(self):
         return [x for x in self.imports]
 
     @property
-    def filename(self):
-        return self._filename
+    def context_name(self):
+        return self._context_name
 
 
 class HyperVertex(HypergraphElement, IComposable):
