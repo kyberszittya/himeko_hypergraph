@@ -1,9 +1,9 @@
-from himeko.hbcm.elements.attribute import HypergraphAttribute
+from himeko.hbcm.elements.attribute import HypergraphAttribute, HypergraphQueryAttribute
 from himeko.hbcm.elements.edge import HyperEdge, HyperArc
 from himeko.hbcm.elements.element import HypergraphElement, common_ancestor
 from himeko.hbcm.elements.interfaces.base_interfaces import IComposable
 from himeko.hbcm.elements.vertex import HyperVertex
-
+from collections.abc import Iterable
 from himeko.hbcm.elements.executable.edge import ExecutableHyperEdge
 
 
@@ -36,10 +36,10 @@ class MetaElementTextGenerator(ExecutableHyperEdge):
         text = ""
         if isinstance(root, HyperVertex):
             if root.meta is not None:
-                text += f"[ {root.meta.context_name}\n"
+                text += f"{root.meta.context_name}\n"
                 for imp in root.meta.imports:
                     text += " " * indent_step + f"import \"{imp}\"\n"
-                text += "]\n"
+                text += "\n"
         return text
 
     def __call__(self, *args, **kwargs):
@@ -122,6 +122,34 @@ class TextGenerator(ExecutableHyperEdge):
             "edge_body_text_generator", timestamp, serial, guid, suid,
             '/'.join([label, "edge_body_generator"]), parent)
 
+    def attr_value_text(self, value):
+        attr_text = ""
+        if isinstance(value, HypergraphQueryAttribute):
+            attr_text +=  f"<?>"
+            # Add comma if not the last element
+        else:
+            attr_text += f"{value}"
+        return attr_text
+
+    def generate_attribute_text(self, attr: HypergraphAttribute, indent=0):
+        text = " " * (indent)
+        attr_text = ""
+        if isinstance(attr.value, Iterable) and not isinstance(attr.value, str):
+            attr_text = f"{attr.name}" + "=" + "["
+            i = 0
+            for i in range(len(attr.value)):
+                attr_text += self.attr_value_text(attr.value[i]) + ","
+            else:
+                attr_text += self.attr_value_text(attr.value[i])
+            attr_text += "]"
+        else:
+            if isinstance(attr.value, HypergraphQueryAttribute):
+                attr_text = "<?>"
+            else:
+                attr_text = str(attr.value)
+            text += f"{attr.name} = {attr_text}\n"
+        return text
+
     def generate_text(self, root: HypergraphElement, indent=0, indent_step=2):
         text = ""
         text += self.__meta_element_text_generator(root, indent_step)
@@ -132,7 +160,9 @@ class TextGenerator(ExecutableHyperEdge):
             text += "\n"
         for c in root.get_children(lambda x: isinstance(x, HypergraphAttribute), 1):
             if isinstance(c, HypergraphAttribute):
-                text += " " * (indent + indent_step) + f"{c.name} {c.value}\n"
+                text += self.generate_attribute_text(c, indent + indent_step)
+
+
         for c in root.get_children(lambda x: isinstance(x, IComposable), 1):
             if isinstance(c, IComposable) and isinstance(c, HypergraphElement):
                 text += self.generate_text(c, indent + indent_step)
