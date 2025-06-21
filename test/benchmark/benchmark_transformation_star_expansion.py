@@ -31,9 +31,10 @@ def main():
             logger.info("Time to encode, {} vertices, {} edges: {}".format(_n, _e, dt))
             del tensor
             results.append((_n, _e, dt))
-
+    # Timestamp
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
     # Save results to file
-    with open("benchmark_star_expansion.csv", "w") as f:
+    with open(f"benchmark_star_expansion{timestamp}.csv", "w") as f:
         f.write("n,e,dt\n")
         for r in results:
             f.write("{},{},{}\n".format(r[0], r[1], r[2]))
