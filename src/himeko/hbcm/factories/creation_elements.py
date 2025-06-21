@@ -138,6 +138,12 @@ class FactoryHypergraphElements(object):
         return e0
 
     @classmethod
+    def create_edge_default_attributes(cls, name: str, timestamp: int, parent: HyperVertex) -> HyperEdge:
+        label, serial, guid, suid = cls.create_default_attributes(name, timestamp, parent)
+        e0 = HyperEdge(name, timestamp, serial, guid, suid, label, parent)
+        return e0
+
+    @classmethod
     def create_vertex_constructor_default(cls, t, name: str, timestamp: int,
                                           parent: typing.Optional[HyperVertex] = None) \
             -> HyperVertex|ExecutableHyperVertex:
