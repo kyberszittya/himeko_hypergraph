@@ -98,11 +98,11 @@ class HyperArc(HypergraphMetaElement):
 
 
 
-def relation_label_default(e0: HypergraphElement, v0: HyperVertex, r: EnumHyperarcDirection):
+def relation_label_default(e0: HypergraphElement, v0: HypergraphElement, r: EnumHyperarcDirection):
     return f"{e0.label}{str(r)}{v0.label}"
 
 
-def relation_name_default(e0: HypergraphElement, v0: HyperVertex, r: EnumHyperarcDirection):
+def relation_name_default(e0: HypergraphElement, v0: HypergraphElement, r: EnumHyperarcDirection):
     return f"{e0.name}{str(r)}{v0.label}"
 
 
@@ -182,11 +182,6 @@ class HyperEdge(HypergraphElement, ITensorTransformation, IComposable):
                     v.inc_degree_out()
                     v.inc_degree_in()
 
-    def unassociate_vertex(self, v: HyperVertex):
-        # TODO: unnassociation
-        if not isinstance(v, HypergraphElement):
-            raise InvalidHypergraphElementException("Unable to remove incompatible element from graph")
-
     def associate_edge(self, r: typing.Tuple[typing.Any, EnumHyperarcDirection, float | typing.Iterable]):
         e, d, v = r
         if not isinstance(e, HyperEdge):
@@ -218,6 +213,49 @@ class HyperEdge(HypergraphElement, ITensorTransformation, IComposable):
                     v.inc_degree_out()
                     v.inc_degree_in()
         # TODO: finish
+
+    def _remove_association(self, target):
+        for guid, rel in list(self.__associations.items()):
+            if rel.target == target:
+                d = rel.direction
+                if d == EnumHyperarcDirection.IN:
+                    self.__cnt_in_relations -= 1
+                    if isinstance(target, IComposable):
+                        target._degree_out = max(0, target._degree_out - 1)
+                elif d == EnumHyperarcDirection.OUT:
+                    self.__cnt_out_relations -= 1
+                    if isinstance(target, IComposable):
+                        target._degree_in = max(0, target._degree_in - 1)
+                elif d == EnumHyperarcDirection.UNDEFINED:
+                    self.__cnt_in_relations -= 1
+                    self.__cnt_out_relations -= 1
+                    if isinstance(target, IComposable):
+                        target._degree_in = max(0, target._degree_in - 1)
+                        target._degree_out = max(0, target._degree_out - 1)
+                del self.__associations[guid]
+                break
+
+    def update_association_value(self, target, new_value):
+        """
+        Update the value of an existing association (vertex or edge).
+        Returns True if updated, False if not found.
+        """
+        for rel in self.__associations.values():
+            if rel.target == target:
+                rel.value = new_value
+                return True
+        return False
+
+    def unassociate_vertex(self, v: HyperVertex):
+        if not isinstance(v, HypergraphElement):
+            raise InvalidHypergraphElementException("Unable to remove incompatible element from graph")
+        # Find the association by GUID
+        self._remove_association(v)
+
+    def unassociate_edge(self, e: 'HyperEdge'):
+        if not isinstance(e, HyperEdge):
+            raise InvalidHypergraphElementException("Unable to remove incompatible edge from graph")
+        self._remove_association(e)
 
     def element_in_edge(self, v: HypergraphElement) -> bool:
         if not isinstance(v, HypergraphElement):
