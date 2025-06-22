@@ -184,6 +184,18 @@ class HypergraphElement(HypergraphMetaElement):
     def name(self):
         return self.__name
 
+    @name.setter
+    def name(self, value: str):
+        if not isinstance(value, str):
+            raise TypeError("Name must be a string")
+        # Update the name in the parent's index if it exists
+        if self.parent is not None:
+            if self.name in self.parent._index_named_elements:
+                del self.parent._index_named_elements[self.name]
+            self.parent._index_named_elements[value] = self
+        self.__name = value
+
+
     def __lt__(self, other):
         return self.guid < other.guid
 
@@ -202,7 +214,7 @@ class HypergraphElement(HypergraphMetaElement):
                 raise KeyError
         raise KeyError
 
-    def __generate_permuations(self):
+    def __generate_permutations(self):
         self._prufer_code, self._element_sequence, self._node_map = generate_naive_prufer(self)
         self._element_sequence.append(self)
         for i, s in enumerate(self._element_sequence):
@@ -212,7 +224,7 @@ class HypergraphElement(HypergraphMetaElement):
     @property
     def prufer_code(self):
         if self.__element_count_changed():
-            self.__generate_permuations()
+            self.__generate_permutations()
         return self._prufer_code
 
     def __element_count_changed(self) -> bool:
@@ -229,25 +241,25 @@ class HypergraphElement(HypergraphMetaElement):
     @property
     def permutation_sequence(self):
         if self.__element_count_changed():
-            self.__generate_permuations()
+            self.__generate_permutations()
         return self._element_sequence
 
     @property
     def children_permutation_sequence(self):
         if self.__element_count_changed():
-            self.__generate_permuations()
+            self.__generate_permutations()
         return self._element_sequence[:-1]
 
     @property
     def element_permutation(self):
         if self.__element_count_changed():
-            self.__generate_permuations()
+            self.__generate_permutations()
         return self._element_permutation
 
     @property
     def permutation_element(self):
         if self.__element_count_changed():
-            self.__generate_permuations()
+            self.__generate_permutations()
         return self._permutation_element
 
     def __contains__(self, item):
@@ -307,6 +319,37 @@ class HypergraphElement(HypergraphMetaElement):
         # Update composite count
         if isinstance(v, IComposable):
             self._composite_count += 1
+
+    # Invalidate and recalculate from the root
+    def _invalidate_and_recalculate(self, node):
+        node._element_sequence = None
+        node._prufer_code = None
+        node._element_permutation = {}
+        node._permutation_element = {}
+        if hasattr(node, "_elements"):
+            for child in node._elements.values():
+                if isinstance(child, HypergraphElement):
+                    self._invalidate_and_recalculate(child)
+        # Recalculate for this node
+        if hasattr(node, "_element_sequence"):
+            node.__generate_permutations()
+
+    def set_parent(self, new_parent):
+        if not (new_parent is None or isinstance(new_parent, HypergraphMetaElement)):
+            raise InvalidParentException("Invalid parent element to hypergraph element")
+        if new_parent is None and self._parent is not None:
+            # Remove from current parent's children
+            self._parent.remove_element(self)
+            self._parent = None
+
+        elif new_parent is not None and isinstance(new_parent, HypergraphElement):
+            if self.guid not in new_parent._elements:
+                new_parent.add_element(self)
+        # Find the root parent
+        root = self
+        while root.parent is not None:
+            root = root.parent
+        #self._invalidate_and_recalculate(root)
 
     def get_element(self, key: str):
         return self._index_named_elements[key]
