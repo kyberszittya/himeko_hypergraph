@@ -12,7 +12,7 @@ def main():
     logger.info("START: BENCHMARK STAR EXPANSION")
 
     cnt_nodes = [1, 3, 5, 7, 10, 20, 50, 100, 150, 200, 250]
-    cnt_edges = [1, 3, 5, 7, 10, 20, 50, 100, 150, 200, 250]
+    cnt_edges = [1, 3, 5, 7, 10, 20, 50, 100, 150, 200, 250, 300, 400, 500]
     transformation = BijectiveCliqueExpansionTransformation()
 
     clock = NullClock()

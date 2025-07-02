@@ -5,8 +5,9 @@ def main():
     # Dictionary based organized by node count
     data = {}
     plot3d_raw_data = []
+    path = "benchmark_star_expansion20250702-213244.csv"
     # Load from benchmark_star_expansion.csv
-    with open("benchmark_star_expansion.csv", "r") as f:
+    with open(path, "r") as f:
         lines = f.readlines()
         lines = lines[1:]
         for l in lines:
